@@ -16,10 +16,22 @@ inThisBuild(Seq(
   )
 ))
 
+lazy val headerSettings = Seq(
+  // These sbt-header settings can't be set in ThisBuild for some reason
+  headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
+  headerLicense  := Some(HeaderLicense.Custom(
+    """|Copyright (c) 2016-2019 Association of Universities for Research in Astronomy, Inc. (AURA)
+       |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+       |""".stripMargin
+  ))
+)
+
 lazy val sbtGsp = (project in file("."))
+  .settings(headerSettings)
   .settings(
-    name         := "GspPlugin",
+    name         := "sbt-gsp",
     scalaVersion := scala12Version,
     sbtPlugin    := true
   )
+  .enablePlugins(AutomateHeaderPlugin)
 
