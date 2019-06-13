@@ -6,7 +6,11 @@ package edu.gemini.gsp.sbtplugin
 import sbt._
 import sbt.Keys._
 
+import de.heikoseeberger.sbtheader.HeaderPlugin
+
 object GspPlugin extends AutoPlugin {
+
+  import HeaderPlugin.autoImport._
 
   object autoImport {
 
@@ -66,18 +70,29 @@ object GspPlugin extends AutoPlugin {
       scalacOptions in (Compile, doc)     --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports")
     )
 
+    lazy val gspHeaderSettings = Seq(
+      headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
+      headerLicense  := Some(HeaderLicense.Custom(
+        """|Copyright (c) 2016-2019 Association of Universities for Research in Astronomy, Inc. (AURA)
+           |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+           |""".stripMargin
+      ))
+    )
   }
 
   import autoImport._
 
   override def requires: Plugins =
-    empty
+    HeaderPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
 
   override val projectSettings =
-    inConfig(Compile)(gspScalacSettings) ++ inConfig(Test)(gspScalacSettings)
+    inConfig(Compile)(gspScalacSettings) ++
+      inConfig(Compile)(gspHeaderSettings)  ++
+      inConfig(Test)(gspScalacSettings)  ++
+      inConfig(Test)(gspHeaderSettings)
 
 }
 
