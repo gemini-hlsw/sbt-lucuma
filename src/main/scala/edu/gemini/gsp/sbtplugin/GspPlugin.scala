@@ -93,8 +93,9 @@ object GspPlugin extends AutoPlugin {
       scalacOptions in (Compile, doc)     --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports")
     )
 
-    lazy val gspAllSettings =
-      gspScalacSettings ++ gspHeaderSettings ++ gspPublishSettings
+    lazy val gspCommonSettings =
+      gspHeaderSettings ++
+      gspScalacSettings 
 
   }
 
@@ -107,8 +108,8 @@ object GspPlugin extends AutoPlugin {
     allRequirements
 
   override val projectSettings =
-    inConfig(Compile)(gspAllSettings) ++
-    inConfig(Test   )(gspAllSettings)
+    inConfig(Compile)(gspCommonSettings) ++
+    inConfig(Test   )(gspCommonSettings)
 
 }
 

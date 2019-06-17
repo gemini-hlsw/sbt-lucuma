@@ -3,7 +3,7 @@ lazy val scala12Version = "2.12.8"
 
 inThisBuild(Seq(
   homepage := Some(url("https://github.com/gemini-hlsw/sbt-gsp"))
-))
+) ++ gspPublishSettings)
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.2.0")
 
