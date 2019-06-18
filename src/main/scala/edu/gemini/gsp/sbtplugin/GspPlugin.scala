@@ -93,6 +93,11 @@ object GspPlugin extends AutoPlugin {
       scalacOptions in (Compile, doc)     --= Seq("-Xfatal-warnings", "-Ywarn-unused:imports", "-Yno-imports")
     )
 
+    lazy val gspScalaJsSettings = Seq(
+      scalacOptions ~= (_.filterNot(Set("-Xcheckinit"))),
+      scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+    )
+
     lazy val gspCommonSettings =
       gspHeaderSettings ++
       gspScalacSettings 
