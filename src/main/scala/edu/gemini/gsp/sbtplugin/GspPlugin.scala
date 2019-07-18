@@ -14,6 +14,10 @@ object GspPlugin extends AutoPlugin {
 
   object autoImport {
 
+    lazy val gspGlobalSettings = Seq(
+      scalaVersion := "2.12.8"
+    )
+
     lazy val gspHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(HeaderLicense.Custom(
@@ -100,7 +104,7 @@ object GspPlugin extends AutoPlugin {
 
     lazy val gspCommonSettings =
       gspHeaderSettings ++
-      gspScalacSettings 
+      gspScalacSettings
 
   }
 
@@ -113,6 +117,7 @@ object GspPlugin extends AutoPlugin {
     allRequirements
 
   override val projectSettings =
+    inThisBuild(gspGlobalSettings) ++
     inConfig(Compile)(gspCommonSettings) ++
     inConfig(Test   )(gspCommonSettings)
 
