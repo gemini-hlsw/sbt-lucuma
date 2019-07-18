@@ -15,7 +15,8 @@ object GspPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val gspGlobalSettings = Seq(
-      scalaVersion := "2.12.8"
+      scalaVersion := "2.12.8",
+      resolvers += Resolver.sonatypeRepo("public")
     )
 
     lazy val gspHeaderSettings = Seq(
