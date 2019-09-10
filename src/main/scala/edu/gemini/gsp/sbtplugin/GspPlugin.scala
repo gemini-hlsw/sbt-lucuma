@@ -62,8 +62,10 @@ object GspPlugin extends AutoPlugin {
   override def trigger: PluginTrigger =
     allRequirements
 
+  override val globalSettings =
+    gspGlobalSettings
+
   override val projectSettings =
-    inThisBuild(gspGlobalSettings) ++
     inConfig(Compile)(gspCommonSettings) ++
     inConfig(Test   )(gspCommonSettings)
 
