@@ -24,7 +24,7 @@ object GspPlugin extends AutoPlugin {
     lazy val gspHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(HeaderLicense.Custom(
-        """|Copyright (c) 2016-2019 Association of Universities for Research in Astronomy, Inc. (AURA)
+        """|Copyright (c) 2016-2020 Association of Universities for Research in Astronomy, Inc. (AURA)
            |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
            |""".stripMargin
       ))
@@ -40,7 +40,8 @@ object GspPlugin extends AutoPlugin {
         Developer("jluhrs",     "Javier Lührs",        "jluhrs@gemini.edu",     url("http://www.gemini.edu"  )),
         Developer("sraaphorst", "Sebastian Raaphorst", "sraaphorst@gemini.edu", url("http://www.gemini.edu"  )),
         Developer("swalker2m",  "Shane Walker",        "swalker@gemini.edu",    url("http://www.gemini.edu"  )),
-        Developer("tpolecat",   "Rob Norris",          "rnorris@gemini.edu",    url("http://www.tpolecat.org"))
+        Developer("tpolecat",   "Rob Norris",          "rnorris@gemini.edu",    url("http://www.tpolecat.org")),
+        Developer("rpiaggio",   "Raúl Piaggio",        "rpiaggio@gemini.edu",   url("http://www.gemini.edu"  )),
       )
     )
 
