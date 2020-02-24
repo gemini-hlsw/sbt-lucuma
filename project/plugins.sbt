@@ -3,5 +3,5 @@ unmanagedSourceDirectories in Compile += baseDirectory.value.getParentFile / "sr
 
 addSbtPlugin("com.geirsson"              % "sbt-ci-release" % "1.5.2")
 addSbtPlugin("de.heikoseeberger"         % "sbt-header"     % "5.2.0")
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat"   % "0.1.8")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat"   % "0.1.11")
 
