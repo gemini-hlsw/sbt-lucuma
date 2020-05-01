@@ -8,16 +8,21 @@ import sbt.Keys._
 
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import _root_.io.github.davidgregory084.TpolecatPlugin
+import scalafix.sbt.ScalafixPlugin
 
 object GspPlugin extends AutoPlugin {
 
   import HeaderPlugin.autoImport._
+  import ScalafixPlugin.autoImport._
 
   object autoImport {
 
     lazy val gspGlobalSettings = Seq(
       scalaVersion := "2.13.1",
-      resolvers += Resolver.sonatypeRepo("public")
+      resolvers += Resolver.sonatypeRepo("public"),
+      semanticdbEnabled := true, // enable SemanticDB
+      semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
+      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.2.1" // Include OrganizeImport scalafix
     )
 
     lazy val gspHeaderSettings = Seq(
@@ -57,7 +62,7 @@ object GspPlugin extends AutoPlugin {
   import autoImport._
 
   override def requires: Plugins =
-    HeaderPlugin && TpolecatPlugin
+    HeaderPlugin && TpolecatPlugin && ScalafixPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
