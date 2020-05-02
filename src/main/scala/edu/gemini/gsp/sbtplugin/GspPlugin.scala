@@ -18,7 +18,7 @@ object GspPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val gspGlobalSettings = Seq(
-      scalaVersion := "2.13.1",
+      scalaVersion := "2.13.2",
       resolvers += Resolver.sonatypeRepo("public"),
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
