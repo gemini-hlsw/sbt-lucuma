@@ -51,8 +51,7 @@ object GspPlugin extends AutoPlugin {
     )
 
     lazy val gspScalaJsSettings = Seq(
-      scalacOptions ~= (_.filterNot(Set("-Xcheckinit"))),
-      scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+      scalacOptions ~= (_.filterNot(Set("-Xcheckinit")))
     )
 
     lazy val gspCommonSettings =
