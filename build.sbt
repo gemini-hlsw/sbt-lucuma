@@ -4,7 +4,7 @@ inThisBuild(
 )
 
 addSbtPlugin("de.heikoseeberger"         % "sbt-header"   % "5.6.0")
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.11")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.12")
 addSbtPlugin("ch.epfl.scala"             % "sbt-scalafix" % "0.9.16")
 
 lazy val sbtGsp = (project in file("."))
