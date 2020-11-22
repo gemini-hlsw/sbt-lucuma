@@ -43,6 +43,8 @@ out/
 # Bloop/Metals
 .bloop/
 .metals/
+.bsp/
+.hydra/
 
 # Vim
 *.swp
