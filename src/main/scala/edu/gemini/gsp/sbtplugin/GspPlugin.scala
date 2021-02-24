@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package lucuma.sbtplugin
@@ -18,18 +18,18 @@ object LucumaPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val lucumaGlobalSettings = Seq(
-      scalaVersion := "2.13.4",
+      scalaVersion := "2.13.5",
       resolvers += Resolver.sonatypeRepo("public"),
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
       scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0", // Include OrganizeImport scalafix
-      addCompilerPlugin(scalafixSemanticdb("4.4.6")) // This is needed for scalafix to run with scala 2.13.4
+      addCompilerPlugin(scalafixSemanticdb("4.4.10")) // This is needed for scalafix to run with scala 2.13.4
     )
 
     lazy val lucumaHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(HeaderLicense.Custom(
-        """|Copyright (c) 2016-2020 Association of Universities for Research in Astronomy, Inc. (AURA)
+        """|Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
            |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
            |""".stripMargin
       ))
