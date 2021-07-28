@@ -45,6 +45,10 @@ out/
 .metals/
 .bsp/
 .hydra/
+metals.sbt
 
 # Vim
 *.swp
+
+# VSCode
+.vscode/

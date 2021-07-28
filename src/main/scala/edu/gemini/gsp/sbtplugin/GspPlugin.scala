@@ -9,6 +9,7 @@ import sbt.Keys._
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import _root_.io.github.davidgregory084.TpolecatPlugin
 import scalafix.sbt.ScalafixPlugin
+import com.timushev.sbt.rewarn.RewarnPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -56,14 +57,15 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCommonSettings =
-      lucumaHeaderSettings
-
+      lucumaHeaderSettings ++ Seq(
+        scalacOptions --= Seq("-Xfatal-warnings").filterNot(_ => insideCI.value)
+      )
   }
 
   import autoImport._
 
   override def requires: Plugins =
-    HeaderPlugin && TpolecatPlugin && ScalafixPlugin
+    HeaderPlugin && TpolecatPlugin && ScalafixPlugin && RewarnPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
