@@ -53,12 +53,13 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalaJsSettings = Seq(
-      scalacOptions ~= (_.filterNot(Set("-Xcheckinit"))),
-      scalacOptions --= Seq("-Xfatal-warnings").filterNot(_ => insideCI.value)
+      scalacOptions ~= (_.filterNot(Set("-Xcheckinit")))
     )
 
     lazy val lucumaCommonSettings =
-      lucumaHeaderSettings
+      lucumaHeaderSettings ++ Seq(
+        scalacOptions --= Seq("-Xfatal-warnings").filterNot(_ => insideCI.value)
+      )
   }
 
   import autoImport._
