@@ -23,8 +23,7 @@ object LucumaPlugin extends AutoPlugin {
       resolvers += Resolver.sonatypeRepo("public"),
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0", // Include OrganizeImport scalafix
-      addCompilerPlugin(scalafixSemanticdb("4.4.21")) // This is needed for scalafix to run with scala 2.13.5
+      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0" // Include OrganizeImport scalafix
     )
 
     lazy val lucumaHeaderSettings = Seq(
