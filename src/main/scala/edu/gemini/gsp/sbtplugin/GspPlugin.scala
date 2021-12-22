@@ -7,9 +7,7 @@ import sbt._
 import sbt.Keys._
 
 import de.heikoseeberger.sbtheader.HeaderPlugin
-import _root_.io.github.davidgregory084.TpolecatPlugin
 import scalafix.sbt.ScalafixPlugin
-import com.timushev.sbt.rewarn.RewarnPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -23,7 +21,8 @@ object LucumaPlugin extends AutoPlugin {
       resolvers += Resolver.sonatypeRepo("public"),
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0" // Include OrganizeImport scalafix
+      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0", // Include OrganizeImport scalafix
+      versionScheme := Some("early-semver"),
     )
 
     lazy val lucumaHeaderSettings = Seq(
@@ -62,9 +61,6 @@ object LucumaPlugin extends AutoPlugin {
   }
 
   import autoImport._
-
-  override def requires: Plugins =
-    HeaderPlugin && TpolecatPlugin && ScalafixPlugin && RewarnPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
