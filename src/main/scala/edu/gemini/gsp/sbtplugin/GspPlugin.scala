@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package lucuma.sbtplugin
@@ -28,7 +28,7 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(HeaderLicense.Custom(
-        """|Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+        """|Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
            |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
            |""".stripMargin
       ))
