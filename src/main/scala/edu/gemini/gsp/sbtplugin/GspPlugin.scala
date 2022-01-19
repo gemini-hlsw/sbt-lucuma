@@ -17,11 +17,11 @@ object LucumaPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val lucumaGlobalSettings = Seq(
-      scalaVersion := "2.13.7",
+      scalaVersion := "2.13.8",
       resolvers += Resolver.sonatypeRepo("public"),
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0", // Include OrganizeImport scalafix
+      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0", // Include OrganizeImport scalafix
       versionScheme := Some("early-semver"),
     )
 
