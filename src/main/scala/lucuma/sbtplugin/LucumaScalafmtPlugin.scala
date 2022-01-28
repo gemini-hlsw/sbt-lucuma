@@ -32,7 +32,7 @@ object LucumaScalafmtPlugin extends AutoPlugin {
     lucumaScalafmtGenerate := {
       val in = getClass.getResourceAsStream(commonConf)
       try {
-        IO.transfer(in, (ThisBuild / baseDirectory).value / commonConf)
+        IO.transfer(in, (ThisBuild / baseDirectory).value / s".$commonConf")
       } finally {
         in.close()
       }
@@ -40,7 +40,7 @@ object LucumaScalafmtPlugin extends AutoPlugin {
     },
     lucumaScalafmtCheck := {
       val actual = {
-        val src = Source.fromFile((ThisBuild / baseDirectory).value / commonConf)
+        val src = Source.fromFile((ThisBuild / baseDirectory).value / s".$commonConf")
         try {
           src.mkString
         } finally {
@@ -62,6 +62,6 @@ object LucumaScalafmtPlugin extends AutoPlugin {
     }
   )
 
-  private val commonConf = ".scalafmt-common.conf"
+  private val commonConf = "scalafmt-common.conf"
 
 }
