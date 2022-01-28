@@ -22,7 +22,6 @@ object LucumaPlugin extends AutoPlugin {
       semanticdbEnabled := true, // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
       scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0", // Include OrganizeImport scalafix
-      versionScheme := Some("early-semver"),
     )
 
     lazy val lucumaHeaderSettings = Seq(
@@ -37,7 +36,6 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaPublishSettings = Seq(
       organization     := "edu.gemini",
       organizationName := "Association of Universities for Research in Astronomy, Inc. (AURA)",
-      startYear        := Some(2019),
       licenses         += (("BSD-3-Clause", new URL("https://opensource.org/licenses/BSD-3-Clause"))),
       developers := List(
         Developer("cquiroz",      "Carlos Quiroz",       "cquiroz@gemini.edu",    url("http://www.gemini.edu"  )),
@@ -50,14 +48,6 @@ object LucumaPlugin extends AutoPlugin {
       )
     )
 
-    lazy val lucumaScalaJsSettings = Seq(
-      scalacOptions ~= (_.filterNot(Set("-Xcheckinit")))
-    )
-
-    lazy val lucumaCommonSettings =
-      lucumaHeaderSettings ++ Seq(
-        scalacOptions --= Seq("-Xfatal-warnings").filterNot(_ => insideCI.value)
-      )
   }
 
   import autoImport._
@@ -68,9 +58,10 @@ object LucumaPlugin extends AutoPlugin {
   override val globalSettings =
     lucumaGlobalSettings
 
-  override val projectSettings =
-    inConfig(Compile)(lucumaCommonSettings) ++
-    inConfig(Test   )(lucumaCommonSettings)
+  override val buildSettings =
+    lucumaPublishSettings
+
+  override val projectSettings = 
+    lucumaHeaderSettings
 
 }
-
