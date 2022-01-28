@@ -1,5 +1,6 @@
 ThisBuild / tlBaseVersion := "0.5"
-ThisBuild / scalaVersion  := "2.12.15"
+ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / tlCiReleaseBranches := Seq("master")
 
 lazy val sbtLucuma = (project in file("."))
   .enablePlugins(SbtPlugin)
