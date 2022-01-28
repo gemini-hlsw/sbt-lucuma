@@ -21,7 +21,12 @@ object LucumaPlugin extends AutoPlugin {
 
     lazy val lucumaGlobalSettings = Seq(
       scalaVersion                                   := "2.13.8",
-      resolvers += Resolver.sonatypeRepo("public"),
+      resolvers ++= Seq(
+        Resolver.sonatypeRepo("public"),
+        "Gemini Repository".at(
+          "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
+        )
+      ),
       semanticdbEnabled                              := true, // enable SemanticDB
       semanticdbVersion                              := scalafixSemanticdb.revision, // use Scalafix compatible version
       scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
