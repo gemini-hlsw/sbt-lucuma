@@ -1,3 +1,4 @@
+// Use this project as its own plugin
 Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "src" / "main" / "scala"
 
 addSbtPlugin("org.typelevel"             % "sbt-typelevel"  % "0.4.3")
