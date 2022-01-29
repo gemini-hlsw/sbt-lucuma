@@ -32,7 +32,7 @@ object LucumaAppPlugin extends AutoPlugin {
     )
   )
 
-  private def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
+  private def versionFmt(out: GitDescribeOutput): String = {
     val dirtySuffix = if (out.dirtySuffix.mkString("", "").nonEmpty) {
       "-UNCOMMITED"
     } else {
