@@ -8,8 +8,10 @@ import sbt.Keys._
 
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
+import org.scalafmt.sbt.ScalafmtPlugin
 import org.typelevel.sbt.gha.GenerativePlugin
-import org.typelevel.sbt.TypelevelPlugin
+import org.typelevel.sbt._
+import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -69,7 +71,12 @@ object LucumaPlugin extends AutoPlugin {
 
   import autoImport._
 
-  override def requires = TypelevelPlugin
+  override def requires =
+    TypelevelCiPlugin && 
+    TypelevelGitHubPlugin &&
+    TypelevelSettingsPlugin &&
+    HeaderPlugin &&
+    ScalafmtPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
@@ -81,6 +88,6 @@ object LucumaPlugin extends AutoPlugin {
     lucumaPublishSettings ++ lucumaCiSettings
 
   override val projectSettings =
-    lucumaHeaderSettings
+    lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
 
 }
