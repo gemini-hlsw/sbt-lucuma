@@ -72,11 +72,11 @@ object LucumaPlugin extends AutoPlugin {
   import autoImport._
 
   override def requires =
-    TypelevelCiPlugin && 
-    TypelevelGitHubPlugin &&
-    TypelevelSettingsPlugin &&
-    HeaderPlugin &&
-    ScalafmtPlugin
+    TypelevelCiPlugin &&
+      TypelevelGitHubPlugin &&
+      TypelevelSettingsPlugin &&
+      HeaderPlugin &&
+      ScalafmtPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
