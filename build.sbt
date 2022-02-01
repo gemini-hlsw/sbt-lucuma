@@ -34,6 +34,6 @@ lazy val lib = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma-lib",
-    addSbtPlugin("org.typelevel" % "sbt-typelevel" % sbtTypelevelVersion)
+    addSbtPlugin("org.typelevel" % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
   )
   .dependsOn(core)

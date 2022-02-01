@@ -5,24 +5,11 @@ package lucuma.sbtplugin
 
 import sbt._
 import org.typelevel.sbt._
-import org.typelevel.sbt.gha._
 
 object LucumaLibPlugin extends AutoPlugin {
 
-  override def requires = LucumaPlugin && LucumaScalafmtPlugin && TypelevelPlugin
+  override def requires = TypelevelCiReleasePlugin && LucumaPlugin && LucumaScalafmtPlugin
 
   override def trigger = allRequirements
-
-  import GenerativePlugin.autoImport._
-
-  override def buildSettings = Seq(
-    githubWorkflowBuild ~= { steps =>
-      val scalafmtCheck = WorkflowStep.Sbt(
-        List("project /", "lucumaScalafmtCheck"),
-        name = Some("Check that common scalafmt config is up to date")
-      )
-      scalafmtCheck +: steps
-    }
-  )
 
 }
