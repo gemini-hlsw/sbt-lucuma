@@ -5,7 +5,6 @@ package lucuma.sbtplugin
 
 import sbt._, Keys._
 
-import org.typelevel.sbt.gha.GenerativePlugin
 import scala.io.Source
 
 object LucumaScalafmtPlugin extends AutoPlugin {
@@ -15,22 +14,9 @@ object LucumaScalafmtPlugin extends AutoPlugin {
     lazy val lucumaScalafmtCheck    = taskKey[Unit]("Check that common scalafmt config is up to date")
   }
 
-  override def requires = LucumaPlugin
-
   override def trigger = allRequirements
 
   import autoImport._
-  import GenerativePlugin.autoImport._
-
-  override def buildSettings = Seq(
-    githubWorkflowBuild ~= { steps =>
-      val scalafmtCheck = WorkflowStep.Sbt(List("project /", "lucumaScalafmtCheck"),
-                                           name =
-                                             Some("Check that common scalafmt config is up to date")
-      )
-      scalafmtCheck +: steps
-    }
-  )
 
   override def projectSettings = Seq(
     lucumaScalafmtGenerate := {
