@@ -46,24 +46,7 @@ object LucumaAppPlugin extends AutoPlugin {
   private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
 
   private lazy val ciSettings = Seq(
-    githubWorkflowBuild := Seq(
-      WorkflowStep.Sbt(
-        List("headerCheckAll",
-             "scalafmtCheckAll",
-             "project /",
-             "scalafmtSbtCheck",
-             "lucumaScalafmtCheck"
-        ),
-        name = Some("Check headers and formatting"),
-        cond = Some(primaryJavaCond.value)
-      ),
-      WorkflowStep.Sbt(List("test"), name = Some("Test"))
-    )
+    githubWorkflowBuild += WorkflowStep.Sbt(List("test"), name = Some("Test"))
   )
-
-  private val primaryJavaCond = Def.setting {
-    val java = githubWorkflowJavaVersions.value.head
-    s"matrix.java == '${java.render}'"
-  }
 
 }
