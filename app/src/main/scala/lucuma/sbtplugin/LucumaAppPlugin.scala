@@ -46,7 +46,8 @@ object LucumaAppPlugin extends AutoPlugin {
   private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
 
   private lazy val ciSettings = Seq(
-    githubWorkflowBuild += WorkflowStep.Sbt(List("test"), name = Some("Test"))
+    // keep the header/formatting, test steps and discard mima, scaladocs steps
+    githubWorkflowBuild ~= { _.take(2) }
   )
 
 }
