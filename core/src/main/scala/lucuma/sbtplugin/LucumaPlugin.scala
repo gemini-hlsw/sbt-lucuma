@@ -10,14 +10,17 @@ import de.heikoseeberger.sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
 import org.typelevel.sbt.gha.GenerativePlugin
+import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
   import GenerativePlugin.autoImport._
+  import GitHubActionsPlugin.autoImport._
   import HeaderPlugin.autoImport._
   import ScalafixPlugin.autoImport._
+  import TypelevelSettingsPlugin.autoImport._
 
   object autoImport {
 
@@ -64,9 +67,28 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCiSettings = Seq(
-      githubWorkflowJavaVersions := Seq("8", "17").map(JavaSpec.temurin(_))
+      githubWorkflowJavaVersions := Seq("8", "17").map(JavaSpec.temurin(_)),
+      Def.derive(tlFatalWarnings := githubIsWorkflowBuild.value),
+      githubWorkflowBuild        := {
+        val scalafmtCheck = WorkflowStep.Sbt(
+          List("headerCheckAll",
+               "scalafmtCheckAll",
+               "project /",
+               "scalafmtSbtCheck",
+               "lucumaScalafmtCheck"
+          ),
+          name = Some("Check headers and formatting"),
+          cond = Some(primaryJavaCond.value)
+        )
+        scalafmtCheck +: githubWorkflowBuild.value
+      }
     )
 
+  }
+
+  private val primaryJavaCond = Def.setting {
+    val java = githubWorkflowJavaVersions.value.head
+    s"matrix.java == '${java.render}'"
   }
 
   import autoImport._
@@ -76,7 +98,9 @@ object LucumaPlugin extends AutoPlugin {
       TypelevelGitHubPlugin &&
       TypelevelSettingsPlugin &&
       HeaderPlugin &&
-      ScalafmtPlugin
+      ScalafmtPlugin &&
+      GenerativePlugin &&
+      GitHubActionsPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
