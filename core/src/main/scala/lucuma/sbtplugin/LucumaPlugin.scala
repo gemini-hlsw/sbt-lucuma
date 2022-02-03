@@ -22,6 +22,7 @@ object LucumaPlugin extends AutoPlugin {
   import GitHubActionsPlugin.autoImport._
   import HeaderPlugin.autoImport._
   import ScalafixPlugin.autoImport._
+  import TypelevelKernelPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
 
   object autoImport {
@@ -88,7 +89,9 @@ object LucumaPlugin extends AutoPlugin {
 
     lazy val lucumaCoverageSettings = Seq(
       coverageEnabled              := { // enable in CI, but only for the build job
-        githubIsWorkflowBuild.value && Option(System.getenv("GITHUB_JOB")).contains("build"),
+        githubIsWorkflowBuild.value &&
+        Option(System.getenv("GITHUB_JOB")).contains("build") &&
+        !tlIsScala3.value
       },
       // can't reuse artifacts b/c need to re-compile without coverage enabled
       githubWorkflowArtifactUpload := false,
