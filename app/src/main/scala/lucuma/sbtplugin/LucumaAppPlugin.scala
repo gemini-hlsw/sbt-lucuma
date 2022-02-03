@@ -47,8 +47,7 @@ object LucumaAppPlugin extends AutoPlugin {
 
   private lazy val ciSettings = Seq(
     // keep the header/formatting, test steps and discard mima, scaladocs steps
-    githubWorkflowBuild ~= { _.take(2) },
-    githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
+    githubWorkflowBuild ~= { _.take(2) }
   )
 
 }
