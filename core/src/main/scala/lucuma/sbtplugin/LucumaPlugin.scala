@@ -87,7 +87,9 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCoverageSettings = Seq(
-      coverageEnabled := githubIsWorkflowBuild.value, // enable in CI
+      coverageEnabled := { // enable in CI, but only for the build job
+        githubIsWorkflowBuild.value && Option(System.env("GITHUB_JOB")).contains("build"),
+      },
       githubWorkflowBuild += WorkflowStep.Sbt(
         List("coverageReport", "coverageAggregate"),
         name = Some("Aggregate coverage reports")
