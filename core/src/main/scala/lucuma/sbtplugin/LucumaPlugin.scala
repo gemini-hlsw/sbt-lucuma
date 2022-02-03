@@ -84,11 +84,28 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
+    lazy val dockerComposeSettings = Seq(
+      githubWorkflowBuildPreamble ++= {
+        if (hasDockerComposeYml.value)
+          Seq(WorkflowStep.Run(List("docker-compose up -d"), name = Some("Docker compose up")))
+        else Nil
+      },
+      githubWorkflowBuildPostamble ++= {
+        if (hasDockerComposeYml.value)
+          Seq(WorkflowStep.Run(List("docker-compose down"), name = Some("Docker compose down")))
+        else Nil
+      }
+    )
+
   }
 
   private val primaryJavaCond = Def.setting {
     val java = githubWorkflowJavaVersions.value.head
     s"matrix.java == '${java.render}'"
+  }
+
+  private val hasDockerComposeYml = Def.setting {
+    file("docker-compose.yml").exists()
   }
 
   import autoImport._
@@ -109,7 +126,7 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings
+    lucumaPublishSettings ++ lucumaCiSettings ++ dockerComposeSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
