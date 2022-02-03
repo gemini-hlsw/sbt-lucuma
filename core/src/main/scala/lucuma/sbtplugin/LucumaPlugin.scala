@@ -95,13 +95,15 @@ object LucumaPlugin extends AutoPlugin {
       },
       // can't reuse artifacts b/c need to re-compile without coverage enabled
       githubWorkflowArtifactUpload := false,
-      githubWorkflowBuild += WorkflowStep.Sbt(
-        List("coverageReport", "coverageAggregate"),
-        name = Some("Aggregate coverage reports")
-      ),
-      githubWorkflowBuildPostamble += WorkflowStep.Run(
-        List("bash <(curl -s https://codecov.io/bash)"),
-        name = Some("Upload code coverage data")
+      githubWorkflowBuildPostamble ++= Seq(
+        WorkflowStep.Sbt(
+          List("coverageReport", "coverageAggregate"),
+          name = Some("Aggregate coverage reports")
+        ),
+        WorkflowStep.Run(
+          List("bash <(curl -s https://codecov.io/bash)"),
+          name = Some("Upload code coverage data")
+        )
       )
     )
 
