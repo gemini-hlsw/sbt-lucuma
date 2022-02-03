@@ -13,6 +13,8 @@ import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import scoverage.ScoverageSbtPlugin
+import scoverage.ScoverageKeys._
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -84,6 +86,19 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
+    lazy val lucumaCoverageSettings = Seq(
+      coverageScalacPluginVersion := "1.4.12",
+      coverageEnabled             := githubIsWorkflowBuild.value, // enable in CI
+      githubWorkflowBuild += WorkflowStep.Sbt(
+        List("coverageReport", "coverageAggregate"),
+        name = Some("Aggregate coverage reports")
+      ),
+      githubWorkflowBuildPostamble += WorkflowStep.Run(
+        List("bash <(curl -s https://codecov.io/bash)"),
+        name = Some("Upload code coverage data")
+      )
+    )
+
   }
 
   private val primaryJavaCond = Def.setting {
@@ -100,7 +115,8 @@ object LucumaPlugin extends AutoPlugin {
       HeaderPlugin &&
       ScalafmtPlugin &&
       GenerativePlugin &&
-      GitHubActionsPlugin
+      GitHubActionsPlugin &&
+      ScoverageSbtPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
@@ -109,7 +125,7 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings
+    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
