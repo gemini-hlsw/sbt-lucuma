@@ -96,6 +96,7 @@ object LucumaPlugin extends AutoPlugin {
         List("bash <(curl -s https://codecov.io/bash)"),
         name = Some("Upload code coverage data")
       )
+    )
 
     lazy val lucumaDockerComposeSettings = Seq(
       githubWorkflowBuildPreamble ++= {
