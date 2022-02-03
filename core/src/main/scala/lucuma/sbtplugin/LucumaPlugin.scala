@@ -69,7 +69,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCiSettings = Seq(
-      githubWorkflowJavaVersions := Seq("8", "17").map(JavaSpec.temurin(_)),
+      githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17")),
       Def.derive(tlFatalWarnings := githubIsWorkflowBuild.value),
       githubWorkflowBuild        := {
         val scalafmtCheck = WorkflowStep.Sbt(
