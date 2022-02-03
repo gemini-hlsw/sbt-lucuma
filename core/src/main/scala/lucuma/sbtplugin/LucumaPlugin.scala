@@ -96,6 +96,18 @@ object LucumaPlugin extends AutoPlugin {
         List("bash <(curl -s https://codecov.io/bash)"),
         name = Some("Upload code coverage data")
       )
+
+    lazy val lucumaDockerComposeSettings = Seq(
+      githubWorkflowBuildPreamble ++= {
+        if (hasDockerComposeYml.value)
+          Seq(WorkflowStep.Run(List("docker-compose up -d"), name = Some("Docker compose up")))
+        else Nil
+      },
+      githubWorkflowBuildPostamble ++= {
+        if (hasDockerComposeYml.value)
+          Seq(WorkflowStep.Run(List("docker-compose down"), name = Some("Docker compose down")))
+        else Nil
+      }
     )
 
   }
@@ -103,6 +115,10 @@ object LucumaPlugin extends AutoPlugin {
   private val primaryJavaCond = Def.setting {
     val java = githubWorkflowJavaVersions.value.head
     s"matrix.java == '${java.render}'"
+  }
+
+  private val hasDockerComposeYml = Def.setting {
+    file("docker-compose.yml").exists()
   }
 
   import autoImport._
@@ -124,7 +140,7 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings
+    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings ++ lucumaDockerComposeSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
