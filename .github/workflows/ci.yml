@@ -79,21 +79,6 @@ jobs:
       - name: Upload code coverage data
         run: 'bash <(curl -s https://codecov.io/bash)'
 
-      - name: Make target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master')
-        run: mkdir -p target core/target app/target lib/target project/target
-
-      - name: Compress target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master')
-        run: tar cf targets.tar target core/target app/target lib/target project/target
-
-      - name: Upload target directories
-        if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master')
-        uses: actions/upload-artifact@v2
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-${{ matrix.scala }}
-          path: targets.tar
-
   publish:
     name: Publish Artifacts
     needs: [build]
@@ -128,16 +113,6 @@ jobs:
             ~/AppData/Local/Coursier/Cache/v1
             ~/Library/Caches/Coursier/v1
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
-
-      - name: Download target directories (2.12.15)
-        uses: actions/download-artifact@v2
-        with:
-          name: target-${{ matrix.os }}-${{ matrix.java }}-2.12.15
-
-      - name: Inflate target directories (2.12.15)
-        run: |
-          tar xf targets.tar
-          rm targets.tar
 
       - name: Import signing key
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE == ''
