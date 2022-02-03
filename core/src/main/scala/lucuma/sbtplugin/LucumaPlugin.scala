@@ -13,6 +13,8 @@ import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import scoverage.ScoverageSbtPlugin
+import scoverage.ScoverageKeys._
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -84,7 +86,19 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
-    lazy val dockerComposeSettings = Seq(
+    lazy val lucumaCoverageSettings = Seq(
+      coverageEnabled := githubIsWorkflowBuild.value, // enable in CI
+      githubWorkflowBuild += WorkflowStep.Sbt(
+        List("coverageReport", "coverageAggregate"),
+        name = Some("Aggregate coverage reports")
+      ),
+      githubWorkflowBuildPostamble += WorkflowStep.Run(
+        List("bash <(curl -s https://codecov.io/bash)"),
+        name = Some("Upload code coverage data")
+      )
+    )
+
+    lazy val lucumaDockerComposeSettings = Seq(
       githubWorkflowBuildPreamble ++= {
         if (hasDockerComposeYml.value)
           Seq(WorkflowStep.Run(List("docker-compose up -d"), name = Some("Docker compose up")))
@@ -117,7 +131,8 @@ object LucumaPlugin extends AutoPlugin {
       HeaderPlugin &&
       ScalafmtPlugin &&
       GenerativePlugin &&
-      GitHubActionsPlugin
+      GitHubActionsPlugin &&
+      ScoverageSbtPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
@@ -126,7 +141,7 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings ++ dockerComposeSettings
+    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings ++ lucumaDockerComposeSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
