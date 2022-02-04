@@ -12,4 +12,11 @@ object LucumaLibPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
+  import TypelevelSonatypePlugin.autoImport._
+
+  override def buildSettings = Seq(
+    // publish to s01.oss.sonatype.org
+    tlSonatypeUseLegacyHost := false
+  )
+
 }
