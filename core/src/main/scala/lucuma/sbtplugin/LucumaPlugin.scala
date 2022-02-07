@@ -93,7 +93,7 @@ object LucumaPlugin extends AutoPlugin {
       coverageEnabled              := { // enable in CI, but only for the build job
         githubIsWorkflowBuild.value &&
         Option(System.getenv("GITHUB_JOB")).contains("build") &&
-        !tlIsScala3.value
+        !(LocalRootProject / tlIsScala3).value // ThisBuild is unaffected by ++
       },
       // can't reuse artifacts b/c need to re-compile without coverage enabled
       githubWorkflowArtifactUpload := false,
