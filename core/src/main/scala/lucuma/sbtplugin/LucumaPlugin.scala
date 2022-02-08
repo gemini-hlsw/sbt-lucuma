@@ -74,6 +74,12 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaCiSettings = Seq(
       githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17")),
       Def.derive(tlFatalWarnings := githubIsWorkflowBuild.value),
+      evictionErrorLevel         := {
+        if (githubIsWorkflowBuild.value)
+          Level.Error // fatal in CI
+        else
+          Level.Warn  // relaxed locally for snapshot testing, etc.
+      },
       githubWorkflowBuild        := {
         val scalafmtCheck = WorkflowStep.Sbt(
           List("headerCheckAll",
