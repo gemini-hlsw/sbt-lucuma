@@ -1,5 +1,5 @@
 ThisBuild / tlBaseVersion       := "0.6"
-ThisBuild / scalaVersion        := "2.12.15"
+ThisBuild / crossScalaVersions  := Seq("2.12.15")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
 val sbtTypelevelVersion = "0.4.4"
