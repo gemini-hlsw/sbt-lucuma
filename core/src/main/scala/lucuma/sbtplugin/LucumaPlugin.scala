@@ -128,6 +128,12 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
+    lazy val lucumaStewardSettings =
+      addCommandAlias( // Scala Steward runs this command when creating a PR
+        "tlPrePrBotHook",
+        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; +scalafmtAll; scalafmtSbt"
+      )
+
   }
 
   private val primaryJavaCond = Def.setting {
@@ -147,6 +153,7 @@ object LucumaPlugin extends AutoPlugin {
       TypelevelSettingsPlugin &&
       HeaderPlugin &&
       ScalafmtPlugin &&
+      LucumaScalafmtPlugin &&
       GenerativePlugin &&
       GitHubActionsPlugin &&
       ScoverageSbtPlugin
@@ -158,7 +165,7 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings ++ lucumaDockerComposeSettings
+    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings ++ lucumaDockerComposeSettings ++ lucumaStewardSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
