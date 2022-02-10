@@ -28,13 +28,17 @@ object LucumaPlugin extends AutoPlugin {
   object autoImport {
 
     lazy val lucumaGlobalSettings = Seq(
-      scalaVersion                                   := "2.13.8",
       resolvers += "s01-sonatype-public".at(
         "https://s01.oss.sonatype.org/content/repositories/public/"
       ),
       semanticdbEnabled                              := true, // enable SemanticDB
       semanticdbVersion                              := scalafixSemanticdb.revision, // use Scalafix compatible version
       scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
+    )
+
+    lazy val lucumaScalaVersionSettings = Seq(
+      crossScalaVersions := Seq("2.13.8"),
+      scalaVersion       := crossScalaVersions.value.head
     )
 
     lazy val lucumaHeaderSettings = Seq(
@@ -165,7 +169,12 @@ object LucumaPlugin extends AutoPlugin {
     lucumaGlobalSettings
 
   override val buildSettings =
-    lucumaPublishSettings ++ lucumaCiSettings ++ lucumaCoverageSettings ++ lucumaDockerComposeSettings ++ lucumaStewardSettings
+    lucumaScalaVersionSettings ++
+      lucumaPublishSettings ++
+      lucumaCiSettings ++
+      lucumaCoverageSettings ++
+      lucumaDockerComposeSettings ++
+      lucumaStewardSettings
 
   override val projectSettings =
     lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
