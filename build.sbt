@@ -2,10 +2,7 @@ ThisBuild / tlBaseVersion       := "0.6"
 ThisBuild / scalaVersion        := "2.12.15"
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
-ThisBuild / resolvers += "legacy-sonatype-snapshots".at(
-  "https://oss.sonatype.org/content/repositories/snapshots/"
-)
-val sbtTypelevelVersion = "0.4.3-32-5fff779-SNAPSHOT"
+val sbtTypelevelVersion = "0.4.4"
 
 lazy val core = project
   .in(file("core"))
