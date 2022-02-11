@@ -2,7 +2,7 @@ ThisBuild / tlBaseVersion       := "0.6"
 ThisBuild / crossScalaVersions  := Seq("2.12.15")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
-val sbtTypelevelVersion = "0.4.4"
+val sbtTypelevelVersion = "0.4.5"
 
 lazy val core = project
   .in(file("core"))
