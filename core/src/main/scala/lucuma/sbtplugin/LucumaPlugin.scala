@@ -99,12 +99,17 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
-    lazy val lucumaCoverageSettings = Seq(
-      coverageEnabled              := { // enable in CI, but only for the build job
+    lazy val lucumaCoverageProjectSettings = Seq(
+      coverageEnabled := { // enable in CI, but only for the build job
+        (ThisBuild / coverageEnabled).?.value
+          .getOrElse(true) && // enables disabling coverage at ThisBuild level
         githubIsWorkflowBuild.value &&
         Option(System.getenv("GITHUB_JOB")).contains("build") &&
-        !(LocalRootProject / tlIsScala3).value // ThisBuild is unaffected by ++
-      },
+        tlIsScala3.value
+      }
+    )
+
+    lazy val lucumaCoverageBuildSettings = Seq(
       // can't reuse artifacts b/c need to re-compile without coverage enabled
       githubWorkflowArtifactUpload := false,
       githubWorkflowBuildPostamble ++= Seq(
@@ -172,11 +177,11 @@ object LucumaPlugin extends AutoPlugin {
     lucumaScalaVersionSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
-      lucumaCoverageSettings ++
+      lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
       lucumaStewardSettings
 
   override val projectSettings =
-    lucumaHeaderSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
 }
