@@ -99,6 +99,10 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
+    @deprecated("Separated into build/project settings", "0.6.1")
+    lazy val lucumaCoverageSettings =
+      lucumaCoverageProjectSettings ++ lucumaCoverageBuildSettings
+
     lazy val lucumaCoverageProjectSettings = Seq(
       coverageEnabled := { // enable in CI, but only for the build job
         (ThisBuild / coverageEnabled).?.value
