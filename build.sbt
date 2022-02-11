@@ -38,3 +38,14 @@ lazy val lib = project
     addSbtPlugin("org.typelevel" % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
   )
   .dependsOn(core)
+
+lazy val sjsBundler = project
+  .in(file("sjs-bundler"))
+  .enablePlugins(SbtPlugin)
+  .settings(
+    name := "sbt-lucuma-sjs-bundler",
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-parser" % "0.14.1"
+    ),
+    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
+  )
