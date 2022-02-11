@@ -19,13 +19,13 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     Compile / npmDependencies ++= {
       val log = sLog.value
-      readPackageJson(baseDirectory.value, log)(_.dependencies) ++
-        readPackageJson((LocalRootProject / baseDirectory).value, log)(_.dependencies)
+      readPackageJson((LocalRootProject / baseDirectory).value, log)(_.dependencies) ++
+        readPackageJson(baseDirectory.value, log)(_.dependencies)
     },
     Compile / npmDevDependencies ++= {
       val log = sLog.value
-      readPackageJson(baseDirectory.value, log)(_.devDependencies) ++
-        readPackageJson((LocalRootProject / baseDirectory).value, log)(_.devDependencies)
+      readPackageJson((LocalRootProject / baseDirectory).value, log)(_.devDependencies) ++
+        readPackageJson(baseDirectory.value, log)(_.devDependencies)
     }
   )
 
@@ -38,7 +38,7 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
         e => { log.warn(e.toString); None },
         p => Some(p)
       )
-      .flatMap(_.dependencies)
+      .flatMap(f)
       .toList
       .flatMap(_.toList)
 
