@@ -109,7 +109,7 @@ object LucumaPlugin extends AutoPlugin {
           .getOrElse(true) && // enables disabling coverage at ThisBuild level
         githubIsWorkflowBuild.value &&
         Option(System.getenv("GITHUB_JOB")).contains("build") &&
-        tlIsScala3.value
+        !tlIsScala3.value
       }
     )
 
