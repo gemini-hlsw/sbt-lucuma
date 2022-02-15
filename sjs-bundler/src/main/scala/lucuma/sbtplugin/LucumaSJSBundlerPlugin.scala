@@ -7,6 +7,7 @@ import sbt._, Keys._
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import _root_.io.circe.Decoder
 import _root_.io.circe.jawn
+import scala.collection.immutable.ListSet
 
 object LucumaSJSBundlerPlugin extends AutoPlugin {
 
@@ -19,13 +20,21 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     Compile / npmDependencies ++= {
       val log = sLog.value
-      readPackageJson((LocalRootProject / baseDirectory).value, log)(_.dependencies) ++
-        readPackageJson(baseDirectory.value, log)(_.dependencies)
+      ListSet( // avoid dupe if base directories are the same
+        (LocalRootProject / baseDirectory).value,
+        baseDirectory.value
+      ).toList.flatMap { baseDirectory =>
+        readPackageJson(baseDirectory, log)(_.dependencies)
+      }
     },
     Compile / npmDevDependencies ++= {
       val log = sLog.value
-      readPackageJson((LocalRootProject / baseDirectory).value, log)(_.devDependencies) ++
-        readPackageJson(baseDirectory.value, log)(_.devDependencies)
+      ListSet(
+        (LocalRootProject / baseDirectory).value,
+        baseDirectory.value
+      ).toList.flatMap { baseDirectory =>
+        readPackageJson(baseDirectory, log)(_.devDependencies)
+      }
     }
   )
 

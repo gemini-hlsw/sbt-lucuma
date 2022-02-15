@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "fomantic-ui-less": "^2.8.7",
+    "semantic-ui-react": "^2.0.3"
+  },
+  "devDependencies": {
+    "less": "3.9.0",
+    "less-watch-compiler": "1.14.6"
+  }
+}
