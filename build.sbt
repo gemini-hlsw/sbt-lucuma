@@ -2,6 +2,8 @@ ThisBuild / tlBaseVersion       := "0.6"
 ThisBuild / crossScalaVersions  := Seq("2.12.15")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
+enablePlugins(NoPublishPlugin)
+
 val sbtTypelevelVersion = "0.4.5"
 
 lazy val core = project
@@ -38,3 +40,21 @@ lazy val lib = project
     addSbtPlugin("org.typelevel" % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
   )
   .dependsOn(core)
+
+lazy val sjsBundler = project
+  .in(file("sjs-bundler"))
+  .enablePlugins(SbtPlugin)
+  .settings(
+    name                := "sbt-lucuma-sjs-bundler",
+    tlVersionIntroduced := Map("2.12" -> "0.6.1"),
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-parser" % "0.14.1"
+    ),
+    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0"),
+    scriptedLaunchOpts  := {
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
+    },
+    Test / test         := {
+      scripted.toTask("").value
+    }
+  )
