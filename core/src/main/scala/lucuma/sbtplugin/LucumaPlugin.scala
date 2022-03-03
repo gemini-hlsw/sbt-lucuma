@@ -86,7 +86,7 @@ object LucumaPlugin extends AutoPlugin {
         else
           Level.Warn  // relaxed locally for snapshot testing, etc.
       },
-      mergifyStewardConfig := Some(MergifyStewardConfig(mergeMinors = true)),
+      mergifyStewardConfig       := Some(MergifyStewardConfig(mergeMinors = true)),
       githubWorkflowBuild        := {
         val scalafmtCheck = WorkflowStep.Sbt(
           List("headerCheckAll",
