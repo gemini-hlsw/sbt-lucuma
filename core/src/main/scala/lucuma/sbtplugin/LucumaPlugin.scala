@@ -11,6 +11,7 @@ import scalafix.sbt.ScalafixPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
 import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
+import org.typelevel.sbt.mergify.MergifyPlugin
 import org.typelevel.sbt._
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import scoverage.ScoverageSbtPlugin
@@ -21,6 +22,7 @@ object LucumaPlugin extends AutoPlugin {
   import GenerativePlugin.autoImport._
   import GitHubActionsPlugin.autoImport._
   import HeaderPlugin.autoImport._
+  import MergifyPlugin.autoImport._
   import ScalafixPlugin.autoImport._
   import TypelevelKernelPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
@@ -84,6 +86,7 @@ object LucumaPlugin extends AutoPlugin {
         else
           Level.Warn  // relaxed locally for snapshot testing, etc.
       },
+      mergifyStewardConfig := Some(MergifyStewardConfig(mergeMinors = true)),
       githubWorkflowBuild        := {
         val scalafmtCheck = WorkflowStep.Sbt(
           List("headerCheckAll",
