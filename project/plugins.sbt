@@ -6,6 +6,7 @@ Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "lib
 val sbtTypelevelVersion = "0.4.6"
 addSbtPlugin("org.typelevel"     % "sbt-typelevel-settings"   % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"     % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
+addSbtPlugin("org.typelevel"     % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
 addSbtPlugin("de.heikoseeberger" % "sbt-header"               % "5.6.5")
 addSbtPlugin("org.scalameta"     % "sbt-scalafmt"             % "2.4.6")
 addSbtPlugin("ch.epfl.scala"     % "sbt-scalafix"             % "0.9.33")
