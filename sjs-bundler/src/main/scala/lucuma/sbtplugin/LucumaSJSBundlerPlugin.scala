@@ -4,6 +4,7 @@
 package lucuma.sbtplugin
 
 import sbt._, Keys._
+import sbt.nio.Keys._
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import _root_.io.circe.Decoder
 import _root_.io.circe.jawn
@@ -16,6 +17,10 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   import ScalaJSBundlerPlugin.autoImport._
+
+  override def buildSettings = Seq(
+    monitorPackageJson // this gets the one in project root
+  )
 
   override lazy val projectSettings = Seq(
     Compile / npmDependencies ++= {
@@ -35,21 +40,31 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
       ).toList.flatMap { baseDirectory =>
         readPackageJson(baseDirectory, log)(_.devDependencies)
       }
-    }
+    },
+    monitorPackageJson
   )
+
+  // monitor package.json for changes, so sbt reloads automatically
+  private val monitorPackageJson = Global / checkBuildSources / fileInputs += {
+    baseDirectory.value.toGlob / "package.json"
+  }
 
   def readPackageJson(baseDirectory: File, log: Logger)(
     f:                               PackageJson => Option[Map[String, String]]
-  ) =
-    jawn
-      .decodeFile[PackageJson](baseDirectory / "package.json")
-      .fold(
-        e => { log.warn(e.toString); None },
-        p => Some(p)
-      )
-      .flatMap(f)
-      .toList
-      .flatMap(_.toList)
+  ) = {
+    val packageJson = baseDirectory / "package.json"
+    if (packageJson.exists()) {
+      jawn
+        .decodeFile[PackageJson](packageJson)
+        .fold(
+          e => { log.warn(e.toString); None },
+          p => Some(p)
+        )
+        .flatMap(f)
+        .toList
+        .flatMap(_.toList)
+    } else Nil
+  }
 
   case class PackageJson(
     dependencies:    Option[Map[String, String]],
