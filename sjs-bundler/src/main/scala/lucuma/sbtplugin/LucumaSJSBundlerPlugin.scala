@@ -19,7 +19,7 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   import ScalaJSBundlerPlugin.autoImport._
 
   override def buildSettings = Seq(
-    monitorPackageJson // this gets this one in project root
+    monitorPackageJson // this gets the one in project root
   )
 
   override lazy val projectSettings = Seq(
