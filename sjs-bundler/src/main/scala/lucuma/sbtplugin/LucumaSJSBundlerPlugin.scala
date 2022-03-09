@@ -40,16 +40,20 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
 
   def readPackageJson(baseDirectory: File, log: Logger)(
     f:                               PackageJson => Option[Map[String, String]]
-  ) =
-    jawn
-      .decodeFile[PackageJson](baseDirectory / "package.json")
-      .fold(
-        e => { log.warn(e.toString); None },
-        p => Some(p)
-      )
-      .flatMap(f)
-      .toList
-      .flatMap(_.toList)
+  ) = {
+    val packageJson = baseDirectory / "package.json"
+    if (packageJson.exists()) {
+      jawn
+        .decodeFile[PackageJson](packageJson)
+        .fold(
+          e => { log.warn(e.toString); None },
+          p => Some(p)
+        )
+        .flatMap(f)
+        .toList
+        .flatMap(_.toList)
+    } else Nil
+  }
 
   case class PackageJson(
     dependencies:    Option[Map[String, String]],
