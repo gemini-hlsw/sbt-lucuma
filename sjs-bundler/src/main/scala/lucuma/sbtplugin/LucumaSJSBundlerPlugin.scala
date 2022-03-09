@@ -4,6 +4,7 @@
 package lucuma.sbtplugin
 
 import sbt._, Keys._
+import sbt.nio.Keys._
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 import _root_.io.circe.Decoder
 import _root_.io.circe.jawn
@@ -16,6 +17,10 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   import ScalaJSBundlerPlugin.autoImport._
+
+  override def buildSettings = Seq(
+    monitorPackageJson // this gets this one in project root
+  )
 
   override lazy val projectSettings = Seq(
     Compile / npmDependencies ++= {
@@ -35,8 +40,14 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
       ).toList.flatMap { baseDirectory =>
         readPackageJson(baseDirectory, log)(_.devDependencies)
       }
-    }
+    },
+    monitorPackageJson
   )
+
+  // monitor package.json for changes, so sbt reloads automatically
+  private val monitorPackageJson = Global / checkBuildSources / fileInputs += {
+    baseDirectory.value.toGlob / "package.json"
+  }
 
   def readPackageJson(baseDirectory: File, log: Logger)(
     f:                               PackageJson => Option[Map[String, String]]
