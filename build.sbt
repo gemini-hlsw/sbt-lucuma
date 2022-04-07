@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion       := "0.6"
+ThisBuild / tlBaseVersion       := "0.7"
 ThisBuild / crossScalaVersions  := Seq("2.12.15")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
@@ -11,7 +11,7 @@ lazy val core = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma",
-    addSbtPlugin("ch.epfl.scala"      % "sbt-scalafix"             % "0.9.34"),
+    addSbtPlugin("ch.epfl.scala"      % "sbt-scalafix"             % "0.10.0"),
     addSbtPlugin("com.timushev.sbt"   % "sbt-rewarn"               % "0.1.3"),
     addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.4.6"),
     addSbtPlugin("de.heikoseeberger"  % "sbt-header"               % "5.6.5"),
