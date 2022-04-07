@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion       := "0.6"
+ThisBuild / tlBaseVersion       := "0.7"
 ThisBuild / crossScalaVersions  := Seq("2.12.15")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
