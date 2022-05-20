@@ -49,7 +49,7 @@ lazy val sjsBundler = project
     name                := "sbt-lucuma-sjs-bundler",
     tlVersionIntroduced := Map("2.12" -> "0.6.1"),
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-parser" % "0.14.1"
+      "io.circe" %% "circe-parser" % "0.14.2"
     ),
     addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0"),
     scriptedLaunchOpts  := {
