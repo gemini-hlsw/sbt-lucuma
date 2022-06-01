@@ -5,19 +5,19 @@ package lucuma.sbtplugin
 
 import sbt._, Keys._
 import sbtdynver._
-import org.typelevel.sbt.gha._
+import org.typelevel.sbt._
 import java.util.Date
 import java.time.format.DateTimeFormatter
 import java.time.ZoneId
 
 object LucumaAppPlugin extends AutoPlugin {
 
-  override def requires = LucumaPlugin && LucumaScalafmtPlugin && GenerativePlugin
+  override def requires = LucumaPlugin && LucumaScalafmtPlugin
 
   override def trigger = allRequirements
 
   import DynVerPlugin.autoImport._
-  import GenerativePlugin.autoImport._
+  import TypelevelCiPlugin.autoImport._
 
   override def buildSettings = versionSettings ++ ciSettings
 
@@ -47,7 +47,8 @@ object LucumaAppPlugin extends AutoPlugin {
 
   private lazy val ciSettings = Seq(
     // keep the header/formatting, test steps and discard mima, scaladocs steps
-    githubWorkflowBuild ~= { _.take(2) }
+    tlCiMimaBinaryIssueCheck := false,
+    tlCiDocCheck              := false
   )
 
 }
