@@ -48,7 +48,7 @@ object LucumaAppPlugin extends AutoPlugin {
   private lazy val ciSettings = Seq(
     // keep the header/formatting, test steps and discard mima, scaladocs steps
     tlCiMimaBinaryIssueCheck := false,
-    tlCiDocCheck              := false
+    tlCiDocCheck             := false
   )
 
 }
