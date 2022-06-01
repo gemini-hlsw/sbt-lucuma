@@ -147,7 +147,7 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaStewardSettings =
       addCommandAlias( // Scala Steward runs this command when creating a PR
         "tlPrePrBotHook",
-        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; +scalafmtAll; scalafmtSbt"
+        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; lucumaScalafixGenerate; +scalafmtAll; scalafmtSbt"
       )
 
   }
@@ -170,6 +170,7 @@ object LucumaPlugin extends AutoPlugin {
       HeaderPlugin &&
       ScalafmtPlugin &&
       LucumaScalafmtPlugin &&
+      LucumaScalafixPlugin &&
       GenerativePlugin &&
       GitHubActionsPlugin &&
       ScoverageSbtPlugin
