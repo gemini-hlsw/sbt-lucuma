@@ -24,6 +24,7 @@ object LucumaPlugin extends AutoPlugin {
   import HeaderPlugin.autoImport._
   import MergifyPlugin.autoImport._
   import ScalafixPlugin.autoImport._
+  import TypelevelCiPlugin.autoImport._
   import TypelevelKernelPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
 
@@ -93,13 +94,15 @@ object LucumaPlugin extends AutoPlugin {
                "scalafmtCheckAll",
                "project /",
                "scalafmtSbtCheck",
-               "lucumaScalafmtCheck"
+               "lucumaScalafmtCheck",
+               "lucumaScalafixCheck"
           ),
           name = Some("Check headers and formatting"),
           cond = Some(primaryJavaCond.value)
         )
         scalafmtCheck +: githubWorkflowBuild.value
-      }
+      },
+      tlCiScalafixCheck          := true
     )
 
     @deprecated("Separated into build/project settings", "0.6.1")
