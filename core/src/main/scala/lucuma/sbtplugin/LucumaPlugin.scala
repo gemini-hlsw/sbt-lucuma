@@ -3,19 +3,18 @@
 
 package lucuma.sbtplugin
 
-import sbt._
-import sbt.Keys._
-
+import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin
-import scalafix.sbt.ScalafixPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
+import org.typelevel.sbt._
 import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt.mergify.MergifyPlugin
-import org.typelevel.sbt._
-import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import scoverage.ScoverageSbtPlugin
+import sbt.Keys._
+import sbt._
+import scalafix.sbt.ScalafixPlugin
 import scoverage.ScoverageKeys._
+import scoverage.ScoverageSbtPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -24,6 +23,7 @@ object LucumaPlugin extends AutoPlugin {
   import HeaderPlugin.autoImport._
   import MergifyPlugin.autoImport._
   import ScalafixPlugin.autoImport._
+  import TypelevelCiPlugin.autoImport._
   import TypelevelKernelPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
 
@@ -93,13 +93,15 @@ object LucumaPlugin extends AutoPlugin {
                "scalafmtCheckAll",
                "project /",
                "scalafmtSbtCheck",
-               "lucumaScalafmtCheck"
+               "lucumaScalafmtCheck",
+               "lucumaScalafixCheck"
           ),
           name = Some("Check headers and formatting"),
           cond = Some(primaryJavaCond.value)
         )
         scalafmtCheck +: githubWorkflowBuild.value
-      }
+      },
+      tlCiScalafixCheck          := true
     )
 
     @deprecated("Separated into build/project settings", "0.6.1")
@@ -147,7 +149,7 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaStewardSettings =
       addCommandAlias( // Scala Steward runs this command when creating a PR
         "tlPrePrBotHook",
-        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; +scalafmtAll; scalafmtSbt"
+        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; lucumaScalafixGenerate; +scalafmtAll; scalafmtSbt"
       )
 
   }
@@ -170,6 +172,7 @@ object LucumaPlugin extends AutoPlugin {
       HeaderPlugin &&
       ScalafmtPlugin &&
       LucumaScalafmtPlugin &&
+      LucumaScalafixPlugin &&
       GenerativePlugin &&
       GitHubActionsPlugin &&
       ScoverageSbtPlugin
