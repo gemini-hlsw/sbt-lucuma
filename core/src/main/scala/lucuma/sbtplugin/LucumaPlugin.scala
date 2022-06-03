@@ -33,9 +33,8 @@ object LucumaPlugin extends AutoPlugin {
       resolvers += "s01-sonatype-public".at(
         "https://s01.oss.sonatype.org/content/repositories/public/"
       ),
-      semanticdbEnabled                              := true, // enable SemanticDB
-      semanticdbVersion                              := scalafixSemanticdb.revision, // use Scalafix compatible version
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
+      semanticdbEnabled := true,                       // enable SemanticDB
+      semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
@@ -52,6 +51,10 @@ object LucumaPlugin extends AutoPlugin {
            |""".stripMargin
         )
       )
+    )
+
+    lazy val lucumaScalafixSettings = Seq(
+      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
     )
 
     lazy val lucumaPublishSettings = Seq(
@@ -187,6 +190,7 @@ object LucumaPlugin extends AutoPlugin {
 
   override val buildSettings =
     lucumaScalaVersionSettings ++
+      lucumaScalafixSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
