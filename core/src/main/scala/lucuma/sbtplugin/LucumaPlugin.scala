@@ -42,6 +42,10 @@ object LucumaPlugin extends AutoPlugin {
       scalaVersion       := crossScalaVersions.value.head
     )
 
+    lazy val lucumaDocSettings = Seq(
+      Compile / doc / sources := Seq.empty
+    )
+
     lazy val lucumaHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(
@@ -198,6 +202,6 @@ object LucumaPlugin extends AutoPlugin {
       lucumaStewardSettings
 
   override val projectSettings =
-    lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
 }
