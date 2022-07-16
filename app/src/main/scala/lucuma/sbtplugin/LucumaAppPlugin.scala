@@ -49,9 +49,7 @@ object LucumaAppPlugin extends AutoPlugin {
   private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
 
   private lazy val ciSettings = Seq(
-    // keep the header/formatting, test steps and discard mima, scaladocs steps
-    tlCiMimaBinaryIssueCheck := false,
-    tlCiDocCheck             := false
+    tlCiMimaBinaryIssueCheck := false
   )
 
 }

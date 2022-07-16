@@ -110,7 +110,8 @@ object LucumaPlugin extends AutoPlugin {
         )
         scalafmtCheck +: githubWorkflowBuild.value
       },
-      tlCiScalafixCheck          := true
+      tlCiScalafixCheck          := true,
+      tlCiDocCheck               := false // we are generating empty docs anyway
     )
 
     @deprecated("Separated into build/project settings", "0.6.1")
