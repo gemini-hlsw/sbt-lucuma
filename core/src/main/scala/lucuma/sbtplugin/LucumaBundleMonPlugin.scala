@@ -4,6 +4,7 @@
 package lucuma.sbtplugin
 
 import com.armanbilge.sbt.BundleMonPlugin
+import com.armanbilge.sbt.BundleMonPlugin.autoImport._
 import org.typelevel.sbt.gha.GenerativeKeys._
 import org.typelevel.sbt.gha.WorkflowStep
 import sbt._
@@ -20,7 +21,8 @@ object LucumaBundleMonPlugin extends AutoPlugin {
         List("bundleMon"),
         name = Some("Monitor bundle size"),
         cond = Some("matrix.project == 'rootJS'")
-      )
+      ),
+    bundleMonCompression := BundleMonCompression.Brotli
   )
 
 }
