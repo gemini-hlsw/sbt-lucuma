@@ -218,9 +218,7 @@ object LucumaPlugin extends AutoPlugin {
       "headerCreateAll",
       "scalafmtAll",
       "scalafmtSbt",
-      "set ThisBuild / tlFatalWarnings := true",
-      "scalafixAll",
-      "session clear"
+      "scalafixAll"
     ).mkString("; ")
   )
 
