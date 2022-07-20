@@ -200,9 +200,28 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
-      lucumaStewardSettings
+      lucumaStewardSettings ++
+      commandAliasSettings
 
   override val projectSettings =
     lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
+
+  lazy val commandAliasSettings = addCommandAlias(
+    "prePR",
+    List(
+      "reload",
+      "project /",
+      "clean",
+      "githubWorkflowGenerate",
+      "headerCreateAll",
+      "scalafmtAll",
+      "scalafmtSbt",
+      "lucumaScalafmtGenerate",
+      "lucumaScalafixGenerate",
+      "set ThisBuild / tlFatalWarnings := true",
+      "scalafixAll",
+      "session clear"
+    ).mkString("; ")
+  )
 
 }
