@@ -213,11 +213,11 @@ object LucumaPlugin extends AutoPlugin {
       "project /",
       "clean",
       "githubWorkflowGenerate",
+      "lucumaScalafmtGenerate",
+      "lucumaScalafixGenerate",
       "headerCreateAll",
       "scalafmtAll",
       "scalafmtSbt",
-      "lucumaScalafmtGenerate",
-      "lucumaScalafixGenerate",
       "set ThisBuild / tlFatalWarnings := true",
       "scalafixAll",
       "session clear"
