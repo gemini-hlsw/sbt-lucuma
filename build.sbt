@@ -22,7 +22,7 @@ lazy val core = project
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-mergify"    % sbtTypelevelVersion),
-    addSbtPlugin("com.armanbilge"     % "sbt-bundlemon"            % "0.1.2")
+    addSbtPlugin("com.armanbilge"     % "sbt-bundlemon"            % "0.1.3")
   )
 
 lazy val app = project
