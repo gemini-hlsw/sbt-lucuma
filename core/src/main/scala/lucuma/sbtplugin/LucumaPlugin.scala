@@ -200,26 +200,28 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
-      lucumaStewardSettings ++
-      commandAliasSettings
+      lucumaStewardSettings
 
   override val projectSettings =
     lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
-  lazy val commandAliasSettings = addCommandAlias(
-    "prePR",
-    List(
-      "reload",
-      "project /",
-      "clean",
-      "githubWorkflowGenerate",
-      "lucumaScalafmtGenerate",
-      "lucumaScalafixGenerate",
-      "headerCreateAll",
-      "scalafmtAll",
-      "scalafmtSbt",
-      "scalafixAll"
-    ).mkString("; ")
-  )
+  lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
+
+  def commandAliasSettings(extra: List[String]): Seq[Setting[_]] =
+    addCommandAlias(
+      "prePR",
+      (List(
+        "reload",
+        "project /",
+        "clean",
+        "githubWorkflowGenerate",
+        "lucumaScalafmtGenerate",
+        "lucumaScalafixGenerate",
+        "headerCreateAll",
+        "scalafmtAll",
+        "scalafmtSbt",
+        "scalafixAll"
+      ) ::: extra).mkString("; ")
+    )
 
 }

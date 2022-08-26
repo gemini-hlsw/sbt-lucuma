@@ -22,7 +22,7 @@ object LucumaAppPlugin extends AutoPlugin {
   import DynVerPlugin.autoImport._
   import TypelevelCiPlugin.autoImport._
 
-  override def buildSettings = versionSettings ++ ciSettings
+  override def buildSettings = versionSettings ++ ciSettings ++ LucumaPlugin.commandAliasSettings
 
   // Settings to use git to define the version of the project
 
