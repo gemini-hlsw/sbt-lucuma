@@ -52,7 +52,7 @@ lazy val sjsBundler = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-parser" % "0.14.2"
     ),
-    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0"),
+    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.0"),
     scriptedLaunchOpts  := {
       scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
     },
