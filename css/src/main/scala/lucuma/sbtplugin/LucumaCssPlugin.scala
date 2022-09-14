@@ -33,7 +33,7 @@ object LucumaCssPlugin extends AutoPlugin {
       (Compile / resourceDirectories).value.map(_.toGlob / cssDir / "**"),
     Compile / lucumaCss  := {
       val log     = streams.value.log
-      val cssExts = lucumaCssExts.value
+      val cssExts = lucumaCssExts.value.map("." + _)
 
       IO.delete(target.value / cssDir)
 
