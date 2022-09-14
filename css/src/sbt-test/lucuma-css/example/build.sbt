@@ -1,4 +1,4 @@
-ThisBuild / version := sys.props("plugin.version")
+ThisBuild / version      := sys.props("plugin.version")
 ThisBuild / organization := "sbt-lucuma"
 
 lazy val foo = project
@@ -12,8 +12,7 @@ lazy val bar = project
 lazy val baz = project
   .in(file("modules/baz"))
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
-  .dependsOn(bar)
-  .settings(
+  .dependsOn(bar) // depend on a local classpath
+  .settings(      // depend on a jar
     libraryDependencies += organization.value %%% "foo" % version.value
   )
-
