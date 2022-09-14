@@ -1,5 +1,5 @@
 > foo/publishLocal
-> baz/lucumaCss
+> baz/fastLinkJS
 $ exists modules/baz/target/lucuma-css/foo.css
 $ exists modules/baz/target/lucuma-css/bar.css
 $ exists modules/baz/target/lucuma-css/baz.css

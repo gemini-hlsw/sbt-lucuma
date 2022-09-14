@@ -66,10 +66,10 @@ lazy val css = project
   .enablePlugins(SbtPlugin)
   .settings(
     name               := "sbt-lucuma-css",
+    addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.10.1"),
     scriptedLaunchOpts := {
       scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
     },
-    scriptedBufferLog  := false,
     Test / test        := {
       scripted.toTask("").value
     }

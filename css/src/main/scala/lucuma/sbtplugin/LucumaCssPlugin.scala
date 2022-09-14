@@ -3,16 +3,22 @@
 
 package lucuma.sbtplugin
 
-import sbt._, Keys._
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import sbt._
 import sbt.nio.Keys._
 
+import Keys._
+
 object LucumaCssPlugin extends AutoPlugin {
+
+  override def requires = ScalaJSPlugin
 
   object autoImport {
     lazy val lucumaCssExts = settingKey[Set[String]]("Extensions for CSS files")
     lazy val lucumaCss     = taskKey[Unit]("Copy CSS to target")
   }
   import autoImport._
+  import ScalaJSPlugin.autoImport._
 
   private final val cssDir = "lucuma-css"
 
@@ -21,9 +27,11 @@ object LucumaCssPlugin extends AutoPlugin {
   )
 
   override lazy val projectSettings = Seq(
+    Compile / fastLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
+    Compile / fullLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
     Compile / lucumaCss / fileInputs ++=
       (Compile / resourceDirectories).value.map(_.toGlob / cssDir / "**"),
-    Compile / lucumaCss := {
+    Compile / lucumaCss  := {
       val log     = streams.value.log
       val cssExts = lucumaCssExts.value
 
