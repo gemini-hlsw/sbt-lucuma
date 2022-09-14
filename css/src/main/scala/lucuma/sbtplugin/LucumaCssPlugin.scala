@@ -24,16 +24,30 @@ object LucumaCssPlugin extends AutoPlugin {
     Compile / lucumaCss / fileInputs ++=
       (Compile / resourceDirectories).value.map(_.toGlob / cssDir / "**"),
     Compile / lucumaCss := {
+      val log     = streams.value.log
       val cssExts = lucumaCssExts.value
+
+      IO.delete(target.value / cssDir)
+
       (Compile / fullClasspath).value.foreach { attr =>
         val file = attr.data
         if (file.getName.endsWith(".jar")) {
-          IO.unzip(file,
-                   target.value,
-                   name => name.startsWith(cssDir) && cssExts.exists(name.endsWith(_))
+          IO.unzip(
+            file,
+            target.value,
+            name =>
+              if (name.startsWith(cssDir) && cssExts.exists(name.endsWith(_))) {
+                log.info(
+                  s"Copying ${name.split('/').last} from ${file.getName} to ${target.value / cssDir}"
+                )
+                true
+              } else false
           )
         } else {
-          IO.copyDirectory(file / cssDir, target.value)
+          IO.listFiles(file / cssDir).foreach { f =>
+            log.info(s"Copying ${f} to ${target.value / cssDir}")
+          }
+          IO.copyDirectory(file / cssDir, target.value / cssDir)
         }
       }
       ()
