@@ -31,6 +31,14 @@ pull_request_rules:
       add:
       - core
       remove: []
+- name: Label css PRs
+  conditions:
+  - files~=^css/
+  actions:
+    label:
+      add:
+      - css
+      remove: []
 - name: Label lib PRs
   conditions:
   - files~=^lib/
