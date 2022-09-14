@@ -60,3 +60,17 @@ lazy val sjsBundler = project
       scripted.toTask("").value
     }
   )
+
+lazy val css = project
+  .in(file("css"))
+  .enablePlugins(SbtPlugin)
+  .settings(
+    name               := "sbt-lucuma-css",
+    scriptedLaunchOpts := {
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
+    },
+    scriptedBufferLog  := false,
+    Test / test        := {
+      scripted.toTask("").value
+    }
+  )
