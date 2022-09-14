@@ -10,7 +10,7 @@ object LucumaCssPlugin extends AutoPlugin {
 
   object autoImport {
     lazy val lucumaCssExts = settingKey[Set[String]]("Extensions for CSS files")
-    lazy val lucumaCssCopy = taskKey[Unit]("Copy CSS to target")
+    lazy val lucumaCss     = taskKey[Unit]("Copy CSS to target")
   }
   import autoImport._
 
@@ -21,10 +21,9 @@ object LucumaCssPlugin extends AutoPlugin {
   )
 
   override lazy val projectSettings = Seq(
-    Compile / compile       := (Compile / compile).dependsOn(Compile / lucumaCssCopy).value,
-    Compile / lucumaCssCopy / fileInputs ++=
+    Compile / lucumaCss / fileInputs ++=
       (Compile / resourceDirectories).value.map(_.toGlob / cssDir / "**"),
-    Compile / lucumaCssCopy := {
+    Compile / lucumaCss := {
       val cssExts = lucumaCssExts.value
       (Compile / fullClasspath).value.foreach { attr =>
         val file = attr.data
