@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion       := "0.9"
+ThisBuild / tlBaseVersion       := "0.10"
 ThisBuild / crossScalaVersions  := Seq("2.12.16")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
@@ -52,7 +52,7 @@ lazy val sjsBundler = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-parser" % "0.14.2"
     ),
-    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0"),
+    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.0"),
     scriptedLaunchOpts  := {
       scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
     },
