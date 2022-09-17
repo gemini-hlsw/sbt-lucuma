@@ -1,5 +1,5 @@
 ThisBuild / tlBaseVersion       := "0.10"
-ThisBuild / crossScalaVersions  := Seq("2.12.16")
+ThisBuild / crossScalaVersions  := Seq("2.12.17")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
 enablePlugins(NoPublishPlugin)
