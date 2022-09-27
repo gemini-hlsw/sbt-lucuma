@@ -28,7 +28,7 @@ object LucumaCssPlugin extends AutoPlugin {
 
   override lazy val projectSettings = Seq(
     Compile / fastLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
-    Compile / fullLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
+    Compile / fullLinkJS := (Compile / fullLinkJS).dependsOn(Compile / lucumaCss).value,
     Compile / lucumaCss / fileInputs ++=
       (Compile / resourceDirectories).value.map(_.toGlob / cssDir / "**"),
     Compile / lucumaCss  := {
