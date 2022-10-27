@@ -3,6 +3,7 @@
 
 package lucuma.sbtplugin
 
+import com.typesafe.sbt.SbtGit.git
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
@@ -114,6 +115,20 @@ object LucumaPlugin extends AutoPlugin {
       tlCiDocCheck               := false // we are generating empty docs anyway
     )
 
+    lazy val lucumaGitSettings = Seq(
+      // TODO replace with `useConsoleForROGit := true`
+      git.gitUncommittedChanges := {
+        if (githubIsWorkflowBuild.value) {
+          git.gitUncommittedChanges.value
+        } else {
+          import scala.sys.process._
+          import scala.util.Try
+
+          Try("git status -s".!!.trim.length > 0).getOrElse(true)
+        }
+      }
+    )
+
     @deprecated("Separated into build/project settings", "0.6.1")
     lazy val lucumaCoverageSettings =
       lucumaCoverageProjectSettings ++ lucumaCoverageBuildSettings
@@ -200,7 +215,8 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
-      lucumaStewardSettings
+      lucumaStewardSettings ++
+      lucumaGitSettings
 
   override val projectSettings =
     lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
