@@ -97,6 +97,17 @@ object LucumaPlugin extends AutoPlugin {
       mergifyStewardConfig       := Some(
         MergifyStewardConfig(author = "lucuma-steward[bot]", mergeMinors = true)
       ),
+      mergifyPrRules ~= {
+        _.map { rule =>
+          rule.copy(conditions = rule.conditions.map {
+            case MergifyCondition.Or(conditions) =>
+              MergifyCondition.Or(
+                conditions ::: MergifyCondition.Custom("title=flake.lock: Update") :: Nil
+              )
+            case other                           => other
+          })
+        }
+      },
       githubWorkflowBuild        := {
         val scalafmtCheck = WorkflowStep.Sbt(
           List("headerCheckAll",
