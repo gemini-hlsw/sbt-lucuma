@@ -4,7 +4,7 @@ ThisBuild / tlCiReleaseBranches := Seq("master")
 
 enablePlugins(NoPublishPlugin)
 
-val sbtTypelevelVersion = "0.4.17"
+val sbtTypelevelVersion = "0.4.18"
 
 lazy val core = project
   .in(file("core"))
