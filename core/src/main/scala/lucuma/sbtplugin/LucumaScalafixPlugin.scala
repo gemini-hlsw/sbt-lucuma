@@ -29,7 +29,7 @@ object LucumaScalafixPlugin extends AutoPlugin {
         in.close()
 
     },
-    lucumaScalafixCheck    := {
+    lucumaScalafixCheck := {
       val actual = {
         val src = Source.fromFile((ThisBuild / baseDirectory).value / s".$commonConf")
         try

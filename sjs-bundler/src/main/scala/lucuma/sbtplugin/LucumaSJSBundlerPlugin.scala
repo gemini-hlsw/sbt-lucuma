@@ -53,7 +53,7 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   }
 
   def readPackageJson(baseDirectory: File, log: Logger)(
-    f:                               PackageJson => Option[Map[String, String]]
+    f: PackageJson => Option[Map[String, String]]
   ) = {
     val packageJson = baseDirectory / "package.json"
     if (packageJson.exists()) {
