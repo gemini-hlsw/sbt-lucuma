@@ -29,7 +29,7 @@ object LucumaScalafmtPlugin extends AutoPlugin {
         in.close()
 
     },
-    lucumaScalafmtCheck    := {
+    lucumaScalafmtCheck := {
       val actual = {
         val src = Source.fromFile((ThisBuild / baseDirectory).value / s".$commonConf")
         try
