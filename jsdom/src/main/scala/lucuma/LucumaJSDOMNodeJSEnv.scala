@@ -3,8 +3,8 @@
 
 package lucuma
 
-import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv._
+import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import sbt.io.IO
 import sbt.io.syntax._
 
