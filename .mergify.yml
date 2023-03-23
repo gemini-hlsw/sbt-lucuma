@@ -40,6 +40,14 @@ pull_request_rules:
       add:
       - css
       remove: []
+- name: Label jsdom PRs
+  conditions:
+  - files~=^jsdom/
+  actions:
+    label:
+      add:
+      - jsdom
+      remove: []
 - name: Label lib PRs
   conditions:
   - files~=^lib/
