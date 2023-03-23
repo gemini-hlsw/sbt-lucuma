@@ -74,3 +74,14 @@ lazy val css = project
       scripted.toTask("").value
     }
   )
+
+lazy val jsdom = project
+  .in(file("jsdom"))
+  .settings(
+    name                := "lucuma-jsdom",
+    libraryDependencies ++= Seq(
+      "org.scala-js"  %% "scalajs-env-jsdom-nodejs" % "1.1.0",
+      "org.scala-sbt" %% "io"                       % "1.8.0"
+    ),
+    tlVersionIntroduced := Map("2.12" -> "0.10.11")
+  )
