@@ -1,10 +1,10 @@
-ThisBuild / tlBaseVersion       := "0.10"
+ThisBuild / tlBaseVersion       := "0.11"
 ThisBuild / crossScalaVersions  := Seq("2.12.17")
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
 enablePlugins(NoPublishPlugin)
 
-val sbtTypelevelVersion = "0.4.22"
+val sbtTypelevelVersion = "0.5.0-RC1"
 
 lazy val core = project
   .in(file("core"))
