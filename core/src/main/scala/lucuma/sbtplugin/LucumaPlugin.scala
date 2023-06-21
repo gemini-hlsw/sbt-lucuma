@@ -3,7 +3,7 @@
 
 package lucuma.sbtplugin
 
-import com.typesafe.sbt.SbtGit.git
+import com.github.sbt.git.SbtGit.git
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
@@ -39,7 +39,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
-      crossScalaVersions := Seq("2.13.8"),
+      crossScalaVersions := Seq("3.3.0"),
       scalaVersion       := crossScalaVersions.value.head
     )
 
@@ -56,10 +56,6 @@ object LucumaPlugin extends AutoPlugin {
            |""".stripMargin
         )
       )
-    )
-
-    lazy val lucumaScalafixSettings = Seq(
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
     )
 
     lazy val lucumaPublishSettings = Seq(
@@ -127,7 +123,6 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaGitSettings = Seq(
-      // TODO replace with `useConsoleForROGit := true`
       git.gitUncommittedChanges := {
         if (githubIsWorkflowBuild.value) {
           git.gitUncommittedChanges.value
@@ -221,7 +216,6 @@ object LucumaPlugin extends AutoPlugin {
 
   override val buildSettings =
     lucumaScalaVersionSettings ++
-      lucumaScalafixSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
