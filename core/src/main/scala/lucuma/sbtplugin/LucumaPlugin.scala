@@ -39,7 +39,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
-      crossScalaVersions := Seq("2.13.8"),
+      crossScalaVersions := Seq("3.3.0"),
       scalaVersion       := crossScalaVersions.value.head
     )
 
@@ -56,10 +56,6 @@ object LucumaPlugin extends AutoPlugin {
            |""".stripMargin
         )
       )
-    )
-
-    lazy val lucumaScalafixSettings = Seq(
-      scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0" // Include OrganizeImport scalafix
     )
 
     lazy val lucumaPublishSettings = Seq(
@@ -220,7 +216,6 @@ object LucumaPlugin extends AutoPlugin {
 
   override val buildSettings =
     lucumaScalaVersionSettings ++
-      lucumaScalafixSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
