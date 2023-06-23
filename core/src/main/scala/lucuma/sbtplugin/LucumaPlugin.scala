@@ -43,6 +43,10 @@ object LucumaPlugin extends AutoPlugin {
       scalaVersion       := crossScalaVersions.value.head
     )
 
+    lazy val lucumaScalacSettings = Seq(
+      tlJdkRelease := None
+    )
+
     lazy val lucumaDocSettings = Seq(
       Compile / doc / sources := Seq.empty
     )
@@ -216,6 +220,7 @@ object LucumaPlugin extends AutoPlugin {
 
   override val buildSettings =
     lucumaScalaVersionSettings ++
+      lucumaScalacSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
       lucumaCoverageBuildSettings ++
