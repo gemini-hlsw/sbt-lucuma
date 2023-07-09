@@ -156,13 +156,13 @@ jobs:
 
       - name: sbt update
         if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
-        run: sbt '++ ${{ matrix.scala }}' reload +update
+        run: sbt reload +update
 
       - name: Submit Dependencies
         uses: scalacenter/sbt-dependency-submission@v2
         with:
-          modules-ignore: sbt-lucuma
-          configs-ignore: test scala-tool scala-doc-tool
+          modules-ignore: sbt-lucuma_2.12
+          configs-ignore: test scala-tool scala-doc-tool test-internal
 
   validate-steward:
     name: Validate Steward Config
