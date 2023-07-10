@@ -123,7 +123,8 @@ object LucumaPlugin extends AutoPlugin {
         scalafmtCheck +: githubWorkflowBuild.value
       },
       tlCiScalafixCheck          := true,
-      tlCiDocCheck               := false // we are generating empty docs anyway
+      tlCiDocCheck               := false, // we are generating empty docs anyway
+      tlCiDependencyGraphJob     := false
     )
 
     lazy val lucumaGitSettings = Seq(
