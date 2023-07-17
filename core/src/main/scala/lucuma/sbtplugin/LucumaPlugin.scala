@@ -25,10 +25,11 @@ object LucumaPlugin extends AutoPlugin {
   import MergifyPlugin.autoImport._
   import ScalafixPlugin.autoImport._
   import TypelevelCiPlugin.autoImport._
-  import TypelevelKernelPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
 
   object autoImport {
+
+    lazy val lucumaCoverage = settingKey[Boolean]("Globally enable/disable coverage (default true)")
 
     lazy val lucumaGlobalSettings = Seq(
       resolvers += "s01-sonatype-public".at(
@@ -145,28 +146,36 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCoverageProjectSettings ++ lucumaCoverageBuildSettings
 
     lazy val lucumaCoverageProjectSettings = Seq(
-      coverageEnabled := { // enable in CI, but only for the build job
-        (ThisBuild / coverageEnabled).?.value
-          .getOrElse(true) && // enables disabling coverage at ThisBuild level
-        githubIsWorkflowBuild.value &&
-        Option(System.getenv("GITHUB_JOB")).contains("build") &&
-        !tlIsScala3.value
+      coverageEnabled := {
+        lucumaCoverage.value &&                                  // globally enabled
+        githubIsWorkflowBuild.value &&                           // enable in CI
+        Option(System.getenv("GITHUB_JOB")).contains("build") && // only for build job
+        crossVersion.value == CrossVersion.binary                // Scala.js overrides this to add `_sjs1`
       }
     )
 
     lazy val lucumaCoverageBuildSettings = Seq(
+      lucumaCoverage               := true,
       // can't reuse artifacts b/c need to re-compile without coverage enabled
-      githubWorkflowArtifactUpload := false,
-      githubWorkflowBuildPostamble ++= Seq(
-        WorkflowStep.Sbt(
-          List("coverageReport", "coverageAggregate"),
-          name = Some("Aggregate coverage reports")
-        ),
-        WorkflowStep.Run(
-          List("bash <(curl -s https://codecov.io/bash)"),
-          name = Some("Upload code coverage data")
-        )
-      )
+      githubWorkflowArtifactUpload := !lucumaCoverage.value,
+      githubWorkflowBuildPostamble ++= {
+        if (lucumaCoverage.value)
+          Seq(
+            WorkflowStep.Sbt(
+              List("coverageReport", "coverageAggregate"),
+              name = Some("Aggregate coverage reports")
+            ),
+            WorkflowStep.Use(
+              UseRef.Public(
+                "codecov",
+                "codecov-action",
+                "v3"
+              ),
+              name = Some("Upload code coverage data")
+            )
+          )
+        else Nil
+      }
     )
 
     lazy val lucumaDockerComposeSettings = Seq(
