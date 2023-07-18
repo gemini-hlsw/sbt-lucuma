@@ -68,20 +68,25 @@ object LucumaPlugin extends AutoPlugin {
       organizationName := "Association of Universities for Research in Astronomy, Inc. (AURA)",
       licenses += (("BSD-3-Clause", new URL("https://opensource.org/licenses/BSD-3-Clause"))),
       developers       := List(
-        Developer("cquiroz", "Carlos Quiroz", "cquiroz@gemini.edu", url("http://www.gemini.edu")),
-        Developer("jluhrs", "Javier Lührs", "jluhrs@gemini.edu", url("http://www.gemini.edu")),
+        Developer("cquiroz", "Carlos Quiroz", "cquiroz@gemini.edu", url("https://www.gemini.edu")),
+        Developer("jluhrs", "Javier Lührs", "jluhrs@gemini.edu", url("https://www.gemini.edu")),
         Developer("sraaphorst",
                   "Sebastian Raaphorst",
                   "sraaphorst@gemini.edu",
-                  url("http://www.gemini.edu")
+                  url("https://www.gemini.edu")
         ),
-        Developer("swalker2m", "Shane Walker", "swalker@gemini.edu", url("http://www.gemini.edu")),
-        Developer("tpolecat", "Rob Norris", "rnorris@gemini.edu", url("http://www.tpolecat.org")),
-        Developer("rpiaggio", "Raúl Piaggio", "rpiaggio@gemini.edu", url("http://www.gemini.edu")),
+        Developer("swalker2m", "Shane Walker", "swalker@gemini.edu", url("https://www.gemini.edu")),
+        Developer("tpolecat", "Rob Norris", "rnorris@gemini.edu", url("https://www.tpolecat.org")),
+        Developer("rpiaggio", "Raúl Piaggio", "rpiaggio@gemini.edu", url("https://www.gemini.edu")),
         Developer("toddburnside",
                   "Todd Burnside",
                   "tburnside@gemini.edu",
-                  url("http://www.gemini.edu")
+                  url("https://www.gemini.edu")
+        ),
+        Developer("hugo-vrijswijk",
+                  "Hugo van Rijswijjk",
+                  "hugovr@castor-it.nl",
+                  url("https://www.gemini.edu")
         )
       )
     )
