@@ -56,7 +56,10 @@ object LucumaCssPlugin extends AutoPlugin {
 
       def copyFile(file: File): Unit = {
         log.info(s"Copying ${file} to ${target.value / cssDir}")
-        IO.copyFile(file, target.value / cssDir / file.getName)
+        if (file.isDirectory)
+          IO.copyDirectory(file, target.value / cssDir / file.getName)
+        else
+          IO.copyFile(file, target.value / cssDir / file.getName)
       }
 
       Tracked.diffInputs(cache, FileInfo.lastModified)(files) { report =>
