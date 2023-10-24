@@ -114,19 +114,18 @@ object LucumaPlugin extends AutoPlugin {
           })
         }
       },
+      tlCiHeaderCheck            := true,
+      tlCiScalafmtCheck          := true,
       githubWorkflowBuild        := {
-        val scalafmtCheck = WorkflowStep.Sbt(
-          List("headerCheckAll",
-               "scalafmtCheckAll",
-               "project /",
-               "scalafmtSbtCheck",
-               "lucumaScalafmtCheck",
-               "lucumaScalafixCheck"
-          ),
-          name = Some("Check headers and formatting"),
-          cond = Some(primaryJavaCond.value)
-        )
-        scalafmtCheck +: githubWorkflowBuild.value
+        githubWorkflowBuild.value.map {
+          case step: WorkflowStep.Sbt if step.name.exists(_.contains("Check headers")) =>
+            step.copy(
+              commands = step.commands ++
+                List("lucumaScalafmtCheck").filter(_ => tlCiScalafmtCheck.value) ++
+                List("lucumaScalafixCheck").filter(_ => tlCiScalafixCheck.value)
+            )
+          case step                                                                    => step
+        }
       },
       tlCiScalafixCheck          := true,
       tlCiDocCheck               := false, // we are generating empty docs anyway
