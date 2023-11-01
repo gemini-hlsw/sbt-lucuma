@@ -26,6 +26,7 @@ object LucumaPlugin extends AutoPlugin {
   import ScalafixPlugin.autoImport._
   import TypelevelCiPlugin.autoImport._
   import TypelevelSettingsPlugin.autoImport._
+  import TypelevelKernelPlugin.autoImport._
 
   object autoImport {
 
@@ -114,19 +115,18 @@ object LucumaPlugin extends AutoPlugin {
           })
         }
       },
+      tlCiHeaderCheck            := true,
+      tlCiScalafmtCheck          := true,
       githubWorkflowBuild        := {
-        val scalafmtCheck = WorkflowStep.Sbt(
-          List("headerCheckAll",
-               "scalafmtCheckAll",
-               "project /",
-               "scalafmtSbtCheck",
-               "lucumaScalafmtCheck",
-               "lucumaScalafixCheck"
-          ),
-          name = Some("Check headers and formatting"),
-          cond = Some(primaryJavaCond.value)
-        )
-        scalafmtCheck +: githubWorkflowBuild.value
+        githubWorkflowBuild.value.map {
+          case step: WorkflowStep.Sbt if step.name.exists(_.contains("Check headers")) =>
+            step.copy(
+              commands = step.commands ++
+                List("lucumaScalafmtCheck").filter(_ => tlCiScalafmtCheck.value) ++
+                List("lucumaScalafixCheck").filter(_ => tlCiScalafixCheck.value)
+            )
+          case step                                                                    => step
+        }
       },
       tlCiScalafixCheck          := true,
       tlCiDocCheck               := false, // we are generating empty docs anyway
@@ -196,11 +196,17 @@ object LucumaPlugin extends AutoPlugin {
       }
     )
 
-    lazy val lucumaStewardSettings =
-      addCommandAlias( // Scala Steward runs this command when creating a PR
-        "tlPrePrBotHook",
-        "githubWorkflowGenerate; +headerCreateAll; lucumaScalafmtGenerate; lucumaScalafixGenerate; +scalafmtAll; scalafmtSbt"
-      )
+    lazy val lucumaStewardSettings = Seq(
+      GlobalScope / tlCommandAliases += {
+        val command =
+          List("githubWorkflowGenerate", "+headerCreateAll") ++
+            List("lucumaScalafmtGenerate", "+scalafmtAll", "scalafmtSbt")
+              .filter(_ => tlCiScalafmtCheck.value) ++
+            List("lucumaScalafixGenerate").filter(_ => tlCiScalafixCheck.value)
+
+        "tlPrePrBotHook" -> command
+      }
+    )
 
   }
 
@@ -241,28 +247,31 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
       lucumaStewardSettings ++
-      lucumaGitSettings
+      lucumaGitSettings ++
+      commandAliasSettings
 
   override val projectSettings =
     lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
   lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
 
-  def commandAliasSettings(extra: List[String]): Seq[Setting[_]] =
-    addCommandAlias(
-      "prePR",
-      (List(
-        "reload",
-        "project /",
-        "clean",
-        "githubWorkflowGenerate",
-        "lucumaScalafmtGenerate",
-        "lucumaScalafixGenerate",
-        "headerCreateAll",
-        "scalafmtAll",
-        "scalafmtSbt",
-        "scalafixAll"
-      ) ::: extra).mkString("; ")
-    )
+  def commandAliasSettings(extra: List[String]): Seq[Setting[_]] = Seq(
+    GlobalScope / tlCommandAliases += {
+      val command =
+        List(
+          "reload",
+          "project /",
+          "clean",
+          "githubWorkflowGenerate",
+          "headerCreateAll"
+        ) ++
+          List("lucumaScalafixGenerate", "scalafixAll").filter(_ => tlCiScalafixCheck.value) ++
+          List("lucumaScalafmtGenerate", "scalafmtAll", "scalafmtSbt")
+            .filter(_ => tlCiScalafmtCheck.value) ++
+          extra
+
+      "prePR" -> command
+    }
+  )
 
 }
