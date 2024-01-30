@@ -39,6 +39,9 @@ object LucumaJSDOMNodeJSEnv {
          |nodeGlobal.document = document;
          |nodeGlobal.navigator = navigator;
          |nodeGlobal.window = window;
+         |nodeGlobal.Event = window.Event;
+         |nodeGlobal.CustomEvent = window.CustomEvent;
+         |nodeGlobal.IS_REACT_ACT_ENVIRONMENT = true;
          |window.require = new outerRealmFunctionConstructor("return require")();
          |""".stripMargin
     )
