@@ -174,7 +174,7 @@ object LucumaPlugin extends AutoPlugin {
               UseRef.Public(
                 "codecov",
                 "codecov-action",
-                "v3"
+                "v4"
               ),
               name = Some("Upload code coverage data")
             )
