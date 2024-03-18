@@ -5,13 +5,13 @@ package lucuma.sbtplugin
 
 import _root_.io.circe.Decoder
 import _root_.io.circe.jawn
-import sbt._
-import sbt.nio.Keys._
+import sbt.*
+import sbt.nio.Keys.*
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin
 
 import scala.collection.immutable.ListSet
 
-import Keys._
+import Keys.*
 
 object LucumaSJSBundlerPlugin extends AutoPlugin {
 

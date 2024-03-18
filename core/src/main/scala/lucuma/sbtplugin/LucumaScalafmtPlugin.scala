@@ -3,11 +3,11 @@
 
 package lucuma.sbtplugin
 
-import sbt._
+import sbt.*
 
 import scala.io.Source
 
-import Keys._
+import Keys.*
 
 object LucumaScalafmtPlugin extends AutoPlugin {
 

@@ -3,8 +3,8 @@
 
 package lucuma.sbtplugin
 
-import org.typelevel.sbt._
-import sbt._
+import org.typelevel.sbt.*
+import sbt.*
 
 object LucumaLibPlugin extends AutoPlugin {
 

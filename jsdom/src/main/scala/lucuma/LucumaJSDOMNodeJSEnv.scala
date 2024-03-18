@@ -3,12 +3,12 @@
 
 package lucuma
 
-import org.scalajs.jsenv._
+import org.scalajs.jsenv.*
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import sbt.io.IO
-import sbt.io.syntax._
+import sbt.io.syntax.*
 
-import LucumaJSDOMNodeJSEnv._
+import LucumaJSDOMNodeJSEnv.*
 
 class LucumaJSDOMNodeJSEnv extends JSDOMNodeJSEnv {
   override def start(

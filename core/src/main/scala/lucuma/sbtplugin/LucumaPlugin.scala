@@ -7,14 +7,14 @@ import com.github.sbt.git.SbtGit.git
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
-import org.typelevel.sbt._
+import org.typelevel.sbt.*
 import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt.mergify.MergifyPlugin
-import sbt.Keys._
-import sbt._
+import sbt.*
+import sbt.Keys.*
 import scalafix.sbt.ScalafixPlugin
-import scoverage.ScoverageKeys._
+import scoverage.ScoverageKeys.*
 import scoverage.ScoverageSbtPlugin
 
 object LucumaPlugin extends AutoPlugin {
