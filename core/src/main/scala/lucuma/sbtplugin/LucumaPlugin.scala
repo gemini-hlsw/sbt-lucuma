@@ -41,7 +41,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
-      crossScalaVersions := Seq("3.3.0"),
+      crossScalaVersions := Seq("3.3.3"),
       scalaVersion       := crossScalaVersions.value.head
     )
 
