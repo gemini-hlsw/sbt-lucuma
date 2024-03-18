@@ -4,10 +4,10 @@
 package lucuma.sbtplugin
 
 import com.armanbilge.sbt.BundleMonPlugin
-import com.armanbilge.sbt.BundleMonPlugin.autoImport._
-import org.typelevel.sbt.gha.GenerativeKeys._
+import com.armanbilge.sbt.BundleMonPlugin.autoImport.*
+import org.typelevel.sbt.gha.GenerativeKeys.*
 import org.typelevel.sbt.gha.WorkflowStep
-import sbt._
+import sbt.*
 
 object LucumaBundleMonPlugin extends AutoPlugin {
 

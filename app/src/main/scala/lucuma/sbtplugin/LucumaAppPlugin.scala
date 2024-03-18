@@ -3,15 +3,15 @@
 
 package lucuma.sbtplugin
 
-import org.typelevel.sbt._
-import sbt._
-import sbtdynver._
+import org.typelevel.sbt.*
+import sbt.*
+import sbtdynver.*
 
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 
-import Keys._
+import Keys.*
 
 object LucumaAppPlugin extends AutoPlugin {
 

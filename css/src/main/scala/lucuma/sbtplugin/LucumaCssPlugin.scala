@@ -4,9 +4,9 @@
 package lucuma.sbtplugin
 
 import org.scalajs.sbtplugin.ScalaJSPlugin
-import sbt._
+import sbt.*
 
-import Keys._
+import Keys.*
 
 object LucumaCssPlugin extends AutoPlugin {
 
