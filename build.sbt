@@ -6,6 +6,8 @@ enablePlugins(NoPublishPlugin)
 
 val sbtTypelevelVersion = "0.7.1"
 
+val scalaJsVersion = "1.16.0"
+
 lazy val core = project
   .in(file("core"))
   .enablePlugins(SbtPlugin)
@@ -16,7 +18,7 @@ lazy val core = project
     addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.5.2"),
     addSbtPlugin("de.heikoseeberger"  % "sbt-header"               % "5.10.0"),
     addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2"),
-    addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.16.0"),
+    addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % scalaJsVersion),
     addSbtPlugin("org.scoverage"      % "sbt-scoverage"            % "2.0.12"),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-ci"         % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
@@ -67,7 +69,7 @@ lazy val css = project
   .enablePlugins(SbtPlugin)
   .settings(
     name               := "sbt-lucuma-css",
-    addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.10.1"),
+    addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJsVersion),
     scriptedLaunchOpts := {
       scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
     },
