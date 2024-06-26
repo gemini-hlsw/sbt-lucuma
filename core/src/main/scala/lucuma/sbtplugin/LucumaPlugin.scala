@@ -120,10 +120,17 @@ object LucumaPlugin extends AutoPlugin {
       githubWorkflowBuild        := {
         githubWorkflowBuild.value.map {
           case step: WorkflowStep.Sbt if step.name.exists(_.contains("Check headers")) =>
-            step.copy(
+            WorkflowStep.Sbt(
               commands = step.commands ++
                 List("lucumaScalafmtCheck").filter(_ => tlCiScalafmtCheck.value) ++
-                List("lucumaScalafixCheck").filter(_ => tlCiScalafixCheck.value)
+                List("lucumaScalafixCheck").filter(_ => tlCiScalafixCheck.value),
+              step.id,
+              step.name,
+              step.cond,
+              step.env,
+              step.params,
+              step.timeoutMinutes,
+              step.preamble
             )
           case step                                                                    => step
         }
