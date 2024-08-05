@@ -193,12 +193,12 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaDockerComposeSettings = Seq(
       githubWorkflowBuildPreamble ++= {
         if (hasDockerComposeYml.value)
-          Seq(WorkflowStep.Run(List("docker-compose up -d"), name = Some("Docker compose up")))
+          Seq(WorkflowStep.Run(List("docker compose up -d"), name = Some("Docker compose up")))
         else Nil
       },
       githubWorkflowBuildPostamble ++= {
         if (hasDockerComposeYml.value)
-          Seq(WorkflowStep.Run(List("docker-compose down"), name = Some("Docker compose down")))
+          Seq(WorkflowStep.Run(List("docker compose down"), name = Some("Docker compose down")))
         else Nil
       }
     )
