@@ -12,8 +12,6 @@ object LucumaLibPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  import TypelevelSonatypePlugin.autoImport._
-
   override def buildSettings = LucumaPlugin.commandAliasSettings(List("mimaReportBinaryIssues"))
 
 }
