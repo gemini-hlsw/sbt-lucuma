@@ -12,11 +12,6 @@ object LucumaLibPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  import TypelevelSonatypePlugin.autoImport._
-
-  override def buildSettings = Seq(
-    // publish to s01.oss.sonatype.org
-    tlSonatypeUseLegacyHost := false
-  ) ++ LucumaPlugin.commandAliasSettings(List("mimaReportBinaryIssues"))
+  override def buildSettings = LucumaPlugin.commandAliasSettings(List("mimaReportBinaryIssues"))
 
 }
