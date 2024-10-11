@@ -16,7 +16,7 @@ object LucumaLibPlugin extends AutoPlugin {
 
   override def buildSettings = Seq(
     // publish to s01.oss.sonatype.org
-    tlSonatypeUseLegacyHost := false
+    ThisBuild / sonatypeCredentialHost := xerial.sbt.Sonatype.sonatypeLegacy
   ) ++ LucumaPlugin.commandAliasSettings(List("mimaReportBinaryIssues"))
 
 }
