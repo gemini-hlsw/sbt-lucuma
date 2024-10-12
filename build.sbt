@@ -33,7 +33,7 @@ lazy val app = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma-app",
-    addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.0.1")
+    addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.1.0")
   )
   .dependsOn(core)
 
