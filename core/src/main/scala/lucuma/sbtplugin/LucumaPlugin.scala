@@ -49,6 +49,11 @@ object LucumaPlugin extends AutoPlugin {
       tlJdkRelease := Some(17)
     )
 
+    lazy val lucumaScalacProjectSettings = Seq(
+      // workaround https://github.com/fthomas/refined/pull/1317
+      scalacOptions += "-Wconf:msg=Given search preference for WitnessAs:s"
+    )
+
     lazy val lucumaDocSettings = Seq(
       Compile / doc / sources := Seq.empty
     )
@@ -258,7 +263,7 @@ object LucumaPlugin extends AutoPlugin {
       commandAliasSettings
 
   override val projectSettings =
-    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
   lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
 
