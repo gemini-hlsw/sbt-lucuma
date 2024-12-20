@@ -51,7 +51,7 @@ object LucumaPlugin extends AutoPlugin {
 
     lazy val lucumaScalacProjectSettings = Seq(
       // workaround https://github.com/fthomas/refined/pull/1317
-      scalacOptions += "-Wconf:msg=Given search preference for WitnessAs:s"
+      scalacOptions += "-Wconf:msg=Given search preference for .*WitnessAs:s"
     )
 
     lazy val lucumaDocSettings = Seq(
