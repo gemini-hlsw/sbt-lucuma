@@ -56,12 +56,10 @@ lazy val sjsBundler = project
       "io.circe" %% "circe-parser" % "0.14.10"
     ),
     addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1"),
-    scriptedLaunchOpts  := {
-      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
-    },
-    Test / test         := {
+    scriptedLaunchOpts  :=
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value),
+    Test / test         :=
       scripted.toTask("").value
-    }
   )
 
 lazy val css = project
@@ -70,12 +68,10 @@ lazy val css = project
   .settings(
     name               := "sbt-lucuma-css",
     addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJsVersion),
-    scriptedLaunchOpts := {
-      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
-    },
-    Test / test        := {
+    scriptedLaunchOpts :=
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value),
+    Test / test        :=
       scripted.toTask("").value
-    }
   )
 
 lazy val jsdom = project
