@@ -122,7 +122,7 @@ object LucumaPlugin extends AutoPlugin {
       },
       tlCiHeaderCheck            := true,
       tlCiScalafmtCheck          := true,
-      githubWorkflowBuild        := {
+      githubWorkflowBuild        :=
         githubWorkflowBuild.value.map {
           case step: WorkflowStep.Sbt if step.name.exists(_.contains("Check headers")) =>
             WorkflowStep.Sbt(
@@ -138,8 +138,7 @@ object LucumaPlugin extends AutoPlugin {
               step.preamble
             )
           case step                                                                    => step
-        }
-      },
+        },
       tlCiScalafixCheck          := true,
       tlCiDocCheck               := false, // we are generating empty docs anyway
       tlCiDependencyGraphJob     := false
@@ -163,12 +162,11 @@ object LucumaPlugin extends AutoPlugin {
       lucumaCoverageProjectSettings ++ lucumaCoverageBuildSettings
 
     lazy val lucumaCoverageProjectSettings = Seq(
-      coverageEnabled := {
-        lucumaCoverage.value &&                                  // globally enabled
-        githubIsWorkflowBuild.value &&                           // enable in CI
-        Option(System.getenv("GITHUB_JOB")).contains("build") && // only for build job
-        crossVersion.value == CrossVersion.binary                // Scala.js overrides this to add `_sjs1`
-      }
+      coverageEnabled :=
+        lucumaCoverage.value &&                                    // globally enabled
+          githubIsWorkflowBuild.value &&                           // enable in CI
+          Option(System.getenv("GITHUB_JOB")).contains("build") && // only for build job
+          crossVersion.value == CrossVersion.binary                // Scala.js overrides this to add `_sjs1`
     )
 
     lazy val lucumaCoverageBuildSettings = Seq(

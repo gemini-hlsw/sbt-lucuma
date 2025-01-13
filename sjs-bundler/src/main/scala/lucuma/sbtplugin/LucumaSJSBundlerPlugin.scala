@@ -48,9 +48,8 @@ object LucumaSJSBundlerPlugin extends AutoPlugin {
   )
 
   // monitor package.json for changes, so sbt reloads automatically
-  private val monitorPackageJson = Global / checkBuildSources / fileInputs += {
+  private val monitorPackageJson = Global / checkBuildSources / fileInputs +=
     baseDirectory.value.toGlob / "package.json"
-  }
 
   def readPackageJson(baseDirectory: File, log: Logger)(
     f: PackageJson => Option[Map[String, String]]
