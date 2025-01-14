@@ -19,7 +19,7 @@ lazy val core = project
     addSbtPlugin("de.heikoseeberger"  % "sbt-header"               % "5.10.0"),
     addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2"),
     addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % scalaJsVersion),
-    addSbtPlugin("org.scoverage"      % "sbt-scoverage"            % "2.2.2"),
+    addSbtPlugin("org.scoverage"      % "sbt-scoverage"            % "2.3.0"),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-ci"         % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
