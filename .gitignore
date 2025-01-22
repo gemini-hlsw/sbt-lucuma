@@ -52,3 +52,4 @@ metals.sbt
 
 # VSCode
 .vscode/
+.direnv/
