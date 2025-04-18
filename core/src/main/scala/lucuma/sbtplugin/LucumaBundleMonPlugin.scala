@@ -20,8 +20,7 @@ object LucumaBundleMonPlugin extends AutoPlugin {
       WorkflowStep.Sbt(
         List("bundleMon"),
         name = Some("Monitor bundle size"),
-        cond = Some("matrix.project == 'rootJS'"),
-        params = Map("continue-on-error" -> "true")
+        cond = Some("matrix.project == 'rootJS'")
       ),
     bundleMonCompression := BundleMonCompression.Brotli
   )
