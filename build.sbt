@@ -6,7 +6,7 @@ enablePlugins(NoPublishPlugin)
 
 val sbtTypelevelVersion = "0.7.7"
 
-val scalaJsVersion = "1.18.2"
+val scalaJsVersion = "1.19.0"
 
 lazy val core = project
   .in(file("core"))
