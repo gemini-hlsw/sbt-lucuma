@@ -3,6 +3,7 @@
 
 package lucuma.sbtplugin
 
+import com.github.sbt.git.SbtGit.GitKeys.useConsoleForROGit
 import com.github.sbt.git.SbtGit.git
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderPlugin
@@ -153,6 +154,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaGitSettings = Seq(
+      useConsoleForROGit        := (baseDirectory.value / ".git").isFile,
       git.gitUncommittedChanges := {
         if (githubIsWorkflowBuild.value) {
           git.gitUncommittedChanges.value
