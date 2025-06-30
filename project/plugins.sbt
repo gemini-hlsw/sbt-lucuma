@@ -8,7 +8,7 @@ addSbtPlugin("org.typelevel"     % "sbt-typelevel-settings"   % sbtTypelevelVers
 addSbtPlugin("org.typelevel"     % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"     % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
 addSbtPlugin("de.heikoseeberger" % "sbt-header"               % "5.10.0")
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"             % "2.5.4")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"             % "2.5.5")
 addSbtPlugin("ch.epfl.scala"     % "sbt-scalafix"             % "0.14.3")
 addSbtPlugin("com.timushev.sbt"  % "sbt-rewarn"               % "0.1.3")
 addSbtPlugin("org.scoverage"     % "sbt-scoverage"            % "2.3.1")
