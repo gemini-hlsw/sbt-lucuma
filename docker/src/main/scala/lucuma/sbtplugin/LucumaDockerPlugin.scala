@@ -46,6 +46,7 @@ object LucumaDockerPlugin extends AutoPlugin {
   )
 
   override def projectSettings = Seq(
+    dockerBaseImage                 := "eclipse-temurin:21-jre",
     Docker / daemonUserUid          := Some("3624"),
     Docker / daemonUser             := "software",
     dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
@@ -53,6 +54,8 @@ object LucumaDockerPlugin extends AutoPlugin {
     dockerUsername                  := Some("noirlab"),
     // No javadocs
     Compile / packageDoc / mappings := Seq(),
+    // Omit sources
+    Compile / doc / sources         := Seq.empty,
     // Don't create launchers for Windows
     makeBatScripts                  := Seq.empty,
     // Launch options
