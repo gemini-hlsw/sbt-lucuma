@@ -17,7 +17,33 @@ object LucumaDockerPlugin extends AutoPlugin {
 
   override def requires = DockerPlugin && JavaServerAppPackaging
 
+  object autoImport {
+    lazy val lucumaDockerDefaultMaxHeap =
+      settingKey[Int](
+        "Default max heap size in MB when not reported by cgroups (default: 512)"
+      )
+    lazy val lucumaDockerMinHeap        =
+      settingKey[Int]("Minimum heap size in MB (default: 256)")
+    lazy val lucumaDockerHeapPercent    =
+      settingKey[Int](
+        "Percentage of memory to use for heap when cgroups report 'max' (default: 80)"
+      )
+    lazy val lucumaDockerHeapSubtract   =
+      settingKey[Int](
+        "Amount in MB to subtract from memory limit when calculating heap size (default: 0) - Ignored when cgroups report 'max'"
+      )
+  }
+
   override def trigger = allRequirements
+
+  import autoImport.*
+
+  override lazy val buildSettings = Seq(
+    lucumaDockerDefaultMaxHeap := 512,
+    lucumaDockerMinHeap        := 256,
+    lucumaDockerHeapPercent    := 80,
+    lucumaDockerHeapSubtract   := 0
+  )
 
   override def projectSettings = Seq(
     Docker / daemonUserUid          := Some("3624"),
@@ -48,11 +74,17 @@ object LucumaDockerPlugin extends AutoPlugin {
       "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
     ),
     // From https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html#bash-and-bat-script-extra-defines
-    bashScriptExtraDefines ++= // extraLines
-      Source
-        .fromInputStream(getClass.getResourceAsStream("heroku-docker-set-memory.sh"))
-        .getLines
-        .toSeq
+    bashScriptExtraDefines ++=
+      Seq(
+        s"DEFAULT_MAX_HEAP_MB=${lucumaDockerDefaultMaxHeap.value}",
+        s"MIN_HEAP_MB=${lucumaDockerMinHeap.value}",
+        s"HEAP_PERCENT=${lucumaDockerHeapPercent.value}",
+        s"HEAP_SUBTRACT_MB=${lucumaDockerHeapSubtract.value}"
+      ) ++
+        Source
+          .fromInputStream(getClass.getResourceAsStream("heroku-docker-set-memory.sh"))
+          .getLines
+          .toSeq
   )
 
 }
