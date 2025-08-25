@@ -53,3 +53,4 @@ metals.sbt
 # VSCode
 .vscode/
 .direnv/
+sbt-launch.jar

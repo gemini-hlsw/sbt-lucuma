@@ -84,3 +84,12 @@ lazy val jsdom = project
     ),
     tlVersionIntroduced := Map("2.12" -> "0.10.11")
   )
+
+lazy val docker = project
+  .in(file("docker"))
+  .enablePlugins(SbtPlugin)
+  .settings(
+    name := "sbt-lucuma-docker",
+    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
+  )
+  .dependsOn(core)
