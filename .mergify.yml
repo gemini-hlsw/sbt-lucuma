@@ -40,6 +40,14 @@ pull_request_rules:
       add:
       - css
       remove: []
+- name: Label docker PRs
+  conditions:
+  - files~=^docker/
+  actions:
+    label:
+      add:
+      - docker
+      remove: []
 - name: Label jsdom PRs
   conditions:
   - files~=^jsdom/
