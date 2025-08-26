@@ -90,6 +90,6 @@ lazy val docker = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma-docker",
-    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
+    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.3")
   )
   .dependsOn(core)
