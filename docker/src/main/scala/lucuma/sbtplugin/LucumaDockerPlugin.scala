@@ -24,7 +24,7 @@ object LucumaDockerPlugin extends AutoPlugin {
       )
     lazy val lucumaDockerMinHeap        =
       settingKey[Int]("Minimum heap size in MB (default: 256)")
-    lazy val lucumaDockerHeapPercent    =
+    lazy val lucumaDockerHeapPercentMax =
       settingKey[Int](
         "Percentage of memory to use for heap when cgroups report 'max' (default: 80)"
       )
@@ -41,7 +41,7 @@ object LucumaDockerPlugin extends AutoPlugin {
   override lazy val buildSettings = Seq(
     lucumaDockerDefaultMaxHeap := 512,
     lucumaDockerMinHeap        := 256,
-    lucumaDockerHeapPercent    := 80,
+    lucumaDockerHeapPercentMax := 80,
     lucumaDockerHeapSubtract   := 0
   )
 
@@ -81,11 +81,11 @@ object LucumaDockerPlugin extends AutoPlugin {
       Seq(
         s"DEFAULT_MAX_HEAP_MB=${lucumaDockerDefaultMaxHeap.value}",
         s"MIN_HEAP_MB=${lucumaDockerMinHeap.value}",
-        s"HEAP_PERCENT=${lucumaDockerHeapPercent.value}",
+        s"HEAP_PERCENT_MAX=${lucumaDockerHeapPercentMax.value}",
         s"HEAP_SUBTRACT_MB=${lucumaDockerHeapSubtract.value}"
       ) ++
         Source
-          .fromInputStream(getClass.getResourceAsStream("heroku-docker-set-memory.sh"))
+          .fromInputStream(getClass.getResourceAsStream("docker-set-memory.sh"))
           .getLines
           .toSeq
   )
