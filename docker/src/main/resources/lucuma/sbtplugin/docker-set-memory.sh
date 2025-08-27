@@ -17,14 +17,32 @@ else
   if [[ "$limit_bytes" = "max" ]]; then
     echo "Dyno memory detected: MAX"
 
-    echo "Using -XX:MaxRAMPercentage=${HEAP_PERCENT}.0 instead of Xmx/Xms - IGNORING lucumaDockerHeapSubtract SETTING"
-    addJava "-XX:MaxRAMPercentage=${HEAP_PERCENT}.0"
+    echo "Using -XX:MaxRAMPercentage=${HEAP_PERCENT_MAX}.0 instead of Xmx/Xms - IGNORING lucumaDockerHeapSubtract SETTING"
+    addJava "-XX:MaxRAMPercentage=${HEAP_PERCENT_MAX}.0"
   else
     limit_mb=$((limit_bytes / 1024 / 1024))
 
     echo "Dyno memory detected: ${limit_mb} MB"
-    heap_mb=$((limit_mb * HEAP_PERCENT / 100))
-    
+    # heap_mb=$((limit_mb * HEAP_PERCENT / 100))
+
+    # Black magic to estimate RAM used by system by a linear funciton.
+    # After subtracting this we should get:
+    # 512 MB -> ~300 MB heap; 1024 MB -> ~675 MB heap, similar to Heroku's limits. System RAM is capped at 600 MB.
+    SLOPE_PERCENT=26
+    INTERCEPT=80
+    MAX_SYSTEM_RAM_MB=600
+
+    system_ram=$((limit_mb * SLOPE_PERCENT / 100 + INTERCEPT))
+    # Cap system RAM at the maximum value
+    if (( system_ram > MAX_SYSTEM_RAM_MB )); then
+      system_ram=$MAX_SYSTEM_RAM_MB
+    fi
+    echo "Estimated system RAM usage: ${system_ram} MB"
+
+    # Calculate heap size by subtracting system RAM from total limit
+    heap_mb=$((limit_mb - system_ram))
+    echo "Calculated max heap size: ${heap_mb} MB"
+
     # Apply heap subtraction if configured
     if [[ $HEAP_SUBTRACT_MB -gt 0 ]]; then
       echo "Subtracting ${HEAP_SUBTRACT_MB} MB from heap size"
