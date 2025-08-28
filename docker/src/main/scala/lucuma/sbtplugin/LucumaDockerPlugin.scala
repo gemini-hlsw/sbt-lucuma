@@ -32,6 +32,10 @@ object LucumaDockerPlugin extends AutoPlugin {
       settingKey[Int](
         "Amount in MB to subtract from memory limit when calculating heap size (default: 0) - Ignored when cgroups report 'max'"
       )
+    lazy val lucumaDockerOpenDebugPorts =
+      settingKey[Boolean](
+        "If true, open debug ports in the JVM in the start script (default: false)"
+      )
   }
 
   override def trigger = allRequirements
@@ -42,7 +46,8 @@ object LucumaDockerPlugin extends AutoPlugin {
     lucumaDockerDefaultMaxHeap := 512,
     lucumaDockerMinHeap        := 256,
     lucumaDockerHeapPercentMax := 80,
-    lucumaDockerHeapSubtract   := 0
+    lucumaDockerHeapSubtract   := 0,
+    lucumaDockerOpenDebugPorts := false
   )
 
   override def projectSettings = Seq(
@@ -61,11 +66,6 @@ object LucumaDockerPlugin extends AutoPlugin {
     // Launch options
     Universal / javaOptions ++= Seq(
       // -J params will be added as jvm parameters
-      // Support remote JMX access
-      "-J-Dcom.sun.management.jmxremote",
-      "-J-Dcom.sun.management.jmxremote.authenticate=false",
-      "-J-Dcom.sun.management.jmxremote.port=2407",
-      "-J-Dcom.sun.management.jmxremote.ssl=false",
       // Ensure the locale is correctly set
       "-J-Duser.language=en",
       "-J-Duser.country=US",
@@ -73,9 +73,22 @@ object LucumaDockerPlugin extends AutoPlugin {
       // Make sure the application exits on OOM
       "-J-XX:+ExitOnOutOfMemoryError",
       "-J-XX:+CrashOnOutOfMemoryError",
-      "-J-XX:HeapDumpPath=/tmp",
-      "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
+      "-J-XX:HeapDumpPath=/tmp"
     ),
+    // Optionally open debug ports
+    Universal / javaOptions ++= {
+      if (lucumaDockerOpenDebugPorts.value)
+        Seq(
+          // Support remote JMX access
+          "-J-Dcom.sun.management.jmxremote",
+          "-J-Dcom.sun.management.jmxremote.authenticate=false",
+          "-J-Dcom.sun.management.jmxremote.port=2407",
+          "-J-Dcom.sun.management.jmxremote.ssl=false",
+          // Support remote debugging
+          "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
+        )
+      else Seq.empty
+    },
     // From https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html#bash-and-bat-script-extra-defines
     bashScriptExtraDefines ++=
       Seq(
