@@ -8,6 +8,11 @@ else
     echo "Detected cgroup v2: memory limit ${limit_bytes} bytes"
   elif [[ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ]]; then
     limit_bytes=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+    # Ignore values above 1TiB RAM, since when using cgroups v1 the limits file reports a
+		# bogus value of thousands of TiB RAM when there is no container memory limit set.
+		if ((limit_bytes > 1099511627776)); then
+			limit_bytes="max"
+		fi
     echo "Detected cgroup v1: memory limit ${limit_bytes} bytes"
   else
     limit_bytes=$((DEFAULT_MAX_HEAP_MB * 1024 * 1024))
@@ -23,7 +28,6 @@ else
     limit_mb=$((limit_bytes / 1024 / 1024))
 
     echo "Dyno memory detected: ${limit_mb} MB"
-    # heap_mb=$((limit_mb * HEAP_PERCENT / 100))
 
     # Black magic to estimate RAM used by system by a linear funciton.
     # After subtracting this we should get:
@@ -55,9 +59,19 @@ else
       heap_mb=$MIN_HEAP_MB
     fi
 
-    echo "Using -Xms${heap_mb}m -Xmx${heap_mb}m"
+    echo "Using -XX:MaxRAM=${limit_bytes} -Xms${heap_mb}m -Xmx${heap_mb}m"
 
+    # MaxRAM is used by the JVM to derive other flags from it.
+    addJava "-XX:MaxRAM=${limit_bytes}"
     addJava "-Xms${heap_mb}m"
     addJava "-Xmx${heap_mb}m"
+    if (( heap_mb <= 1024 )); then
+      echo "Using -XX:CICompilerCount=2 GC option for small heap"
+      addJava "-XX:CICompilerCount=2"
+    fi
+    if (( heap_mb <= 512 )); then
+      echo "Using -Xss512k for very small heap"
+      addJava "-Xss512k"
+    fi
   fi
 fi
