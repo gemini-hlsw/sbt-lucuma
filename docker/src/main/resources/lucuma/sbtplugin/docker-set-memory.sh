@@ -34,7 +34,7 @@ else
     # 512 MB -> ~300 MB heap; 1024 MB -> ~675 MB heap, similar to Heroku's limits. System RAM is capped at 600 MB.
     SLOPE_PERCENT=26
     INTERCEPT=80
-    MAX_SYSTEM_RAM_MB=600
+    MAX_SYSTEM_RAM_MB=1024
 
     system_ram=$((limit_mb * SLOPE_PERCENT / 100 + INTERCEPT))
     # Cap system RAM at the maximum value
