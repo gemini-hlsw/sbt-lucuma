@@ -3,6 +3,7 @@
 
 package lucuma.sbtplugin
 
+import buildinfo.BuildInfo.HerokuAgentVersion
 import com.typesafe.sbt.packager.Keys.*
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.packager.docker.DockerPlugin
@@ -18,7 +19,6 @@ object LucumaDockerPlugin extends AutoPlugin {
 
   override def requires = DockerPlugin && JavaServerAppPackaging
 
-  private val HerokuAgentVersion       = "4.0.4"
   private val HerokuAgentFilename      = s"heroku-java-metrics-agent-${HerokuAgentVersion}.jar"
   // We could use coursier/sbt to download this, but unles we put the time to delve into its API, this is straightforward and works.
   private val HerokuAgentUrl           =
