@@ -85,11 +85,18 @@ lazy val jsdom = project
     tlVersionIntroduced := Map("2.12" -> "0.10.11")
   )
 
+val HerokuAgentVersion = "4.0.4"
+
 lazy val docker = project
   .in(file("docker"))
-  .enablePlugins(SbtPlugin)
+  .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .settings(
-    name := "sbt-lucuma-docker",
-    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.3")
+    name                := "sbt-lucuma-docker",
+    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.3"),
+    libraryDependencies += // We don't actually use it, but we want bots to update the version.
+      "com.heroku.agent" % "heroku-java-metrics-agent" % HerokuAgentVersion % Provided,
+    buildInfoKeys       := Seq[BuildInfoKey](
+      "HerokuAgentVersion" -> HerokuAgentVersion
+    )
   )
   .dependsOn(core)
