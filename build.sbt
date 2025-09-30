@@ -92,7 +92,7 @@ lazy val docker = project
   .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .settings(
     name                := "sbt-lucuma-docker",
-    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.3"),
+    addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.4"),
     libraryDependencies += // We don't actually use it, but we want bots to update the version.
       "com.heroku.agent" % "heroku-java-metrics-agent" % HerokuAgentVersion % Provided,
     buildInfoKeys       := Seq[BuildInfoKey](
