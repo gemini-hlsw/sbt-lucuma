@@ -3,9 +3,9 @@
 
 package lucuma.sbtplugin
 
+import com.github.sbt.git.*
 import org.typelevel.sbt.*
 import sbt.*
-import com.github.sbt.git.*
 
 import java.time.Instant
 import java.time.ZoneId
