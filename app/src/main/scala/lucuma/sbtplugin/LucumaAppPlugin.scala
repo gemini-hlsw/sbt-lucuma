@@ -3,10 +3,11 @@
 
 package lucuma.sbtplugin
 
+import com.github.sbt.git.*
 import org.typelevel.sbt.*
 import sbt.*
-import sbtdynver.*
 
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -17,34 +18,22 @@ object LucumaAppPlugin extends AutoPlugin {
 
   override def requires = LucumaPlugin && LucumaScalafmtPlugin
 
-  override def trigger = allRequirements
+  override def trigger = noTrigger
 
-  import DynVerPlugin.autoImport._
-  import TypelevelCiPlugin.autoImport._
+  import SbtGit.GitKeys.*
+  import TypelevelCiPlugin.autoImport.*
 
-  override def buildSettings = versionSettings ++ ciSettings ++ LucumaPlugin.commandAliasSettings
+  override def projectSettings = versionSettings ++ ciSettings
 
   // Settings to use git to define the version of the project
+  private def timestamp(d: Date): String = f"$d%tY$d%tm$d%td-$d%tH$d%tM"
 
   private lazy val versionSettings = Seq(
     version := dateFormatter.format(
-      dynverCurrentDate.value.toInstant.atZone(ZoneId.of("UTC")).toLocalDate
-    ) + dynverGitDescribeOutput.value.mkVersion(
-      versionFmt,
-      fallbackVersion(dynverCurrentDate.value)
-    )
+      Instant.now.atZone(ZoneId.of("UTC")).toLocalDate
+    ) + gitHeadCommit.value.map(_.take(8)).getOrElse(s"HEAD-${timestamp(new Date)}")
+      + (if (gitUncommittedChanges.value) "-UNCOMMITTED" else "")
   )
-
-  private def versionFmt(out: GitDescribeOutput): String = {
-    val dirtySuffix = if (out.dirtySuffix.mkString("", "").nonEmpty) {
-      "-UNCOMMITED"
-    } else {
-      ""
-    }
-    s"-${out.commitSuffix.sha}$dirtySuffix"
-  }
-
-  private def fallbackVersion(d: Date): String = s"HEAD-${DynVer.timestamp(d)}"
 
   private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
 
