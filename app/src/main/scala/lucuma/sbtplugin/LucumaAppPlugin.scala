@@ -23,7 +23,7 @@ object LucumaAppPlugin extends AutoPlugin {
   import SbtGit.GitKeys.*
   import TypelevelCiPlugin.autoImport.*
 
-  override def projectSettings = versionSettings ++ ciSettings
+  override def buildSettings = versionSettings ++ ciSettings
 
   // Settings to use git to define the version of the project
   private def timestamp(d: Date): String = f"$d%tY$d%tm$d%td-$d%tH$d%tM"
