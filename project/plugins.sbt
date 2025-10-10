@@ -10,7 +10,7 @@ addSbtPlugin("org.typelevel"     % "sbt-typelevel-mergify"    % sbtTypelevelVers
 addSbtPlugin("com.github.sbt"    % "sbt-native-packager"      % "1.11.3")
 addSbtPlugin("de.heikoseeberger" % "sbt-header"               % "5.10.0")
 addSbtPlugin("org.scalameta"     % "sbt-scalafmt"             % "2.5.5")
-addSbtPlugin("ch.epfl.scala"     % "sbt-scalafix"             % "0.14.3")
+addSbtPlugin("ch.epfl.scala"     % "sbt-scalafix"             % "0.14.4")
 addSbtPlugin("com.timushev.sbt"  % "sbt-rewarn"               % "0.1.3")
 addSbtPlugin("org.scoverage"     % "sbt-scoverage"            % "2.3.1")
 addSbtPlugin("com.armanbilge"    % "sbt-bundlemon"            % "0.1.4")
