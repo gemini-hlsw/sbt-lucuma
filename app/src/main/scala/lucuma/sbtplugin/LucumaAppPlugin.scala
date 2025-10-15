@@ -18,12 +18,12 @@ object LucumaAppPlugin extends AutoPlugin {
 
   override def requires = LucumaPlugin && LucumaScalafmtPlugin
 
-  override def trigger = noTrigger
+  override def trigger = allRequirements
 
   import SbtGit.GitKeys.*
   import TypelevelCiPlugin.autoImport.*
 
-  override def projectSettings = versionSettings ++ ciSettings
+  override def buildSettings = versionSettings ++ ciSettings
 
   // Settings to use git to define the version of the project
   private def timestamp(d: Date): String = f"$d%tY$d%tm$d%td-$d%tH$d%tM"
@@ -31,7 +31,7 @@ object LucumaAppPlugin extends AutoPlugin {
   private lazy val versionSettings = Seq(
     version := dateFormatter.format(
       Instant.now.atZone(ZoneId.of("UTC")).toLocalDate
-    ) + gitHeadCommit.value.map(_.take(8)).getOrElse(s"HEAD-${timestamp(new Date)}")
+    ) + "-" + gitHeadCommit.value.map(_.take(8)).getOrElse(s"HEAD-${timestamp(new Date)}")
       + (if (gitUncommittedChanges.value) "-UNCOMMITTED" else "")
   )
 
