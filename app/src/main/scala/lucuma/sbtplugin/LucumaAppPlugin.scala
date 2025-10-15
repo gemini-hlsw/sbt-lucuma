@@ -18,7 +18,7 @@ object LucumaAppPlugin extends AutoPlugin {
 
   override def requires = LucumaPlugin && LucumaScalafmtPlugin
 
-  override def trigger = noTrigger
+  override def trigger = allRequirements
 
   import SbtGit.GitKeys.*
   import TypelevelCiPlugin.autoImport.*
