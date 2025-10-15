@@ -31,7 +31,7 @@ object LucumaAppPlugin extends AutoPlugin {
   private lazy val versionSettings = Seq(
     version := dateFormatter.format(
       Instant.now.atZone(ZoneId.of("UTC")).toLocalDate
-    ) + gitHeadCommit.value.map(_.take(8)).getOrElse(s"HEAD-${timestamp(new Date)}")
+    ) + "-" + gitHeadCommit.value.map(_.take(8)).getOrElse(s"HEAD-${timestamp(new Date)}")
       + (if (gitUncommittedChanges.value) "-UNCOMMITTED" else "")
   )
 
