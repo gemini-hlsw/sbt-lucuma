@@ -144,7 +144,8 @@ object LucumaPlugin extends AutoPlugin {
               step.env,
               step.params,
               step.timeoutMinutes,
-              step.preamble
+              step.preamble,
+              step.continueOnError
             )
           case step                                                                    => step
         },
