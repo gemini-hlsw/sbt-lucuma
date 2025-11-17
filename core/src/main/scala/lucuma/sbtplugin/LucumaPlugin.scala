@@ -5,8 +5,6 @@ package lucuma.sbtplugin
 
 import com.github.sbt.git.SbtGit.GitKeys.useConsoleForROGit
 import com.github.sbt.git.SbtGit.git
-import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
-import de.heikoseeberger.sbtheader.HeaderPlugin
 import org.scalafmt.sbt.ScalafmtPlugin
 import org.typelevel.sbt.*
 import org.typelevel.sbt.gha.GenerativePlugin
@@ -14,6 +12,8 @@ import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt.mergify.MergifyPlugin
 import sbt.*
 import sbt.Keys.*
+import sbtheader.AutomateHeaderPlugin
+import sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
 import scoverage.ScoverageKeys.*
 import scoverage.ScoverageSbtPlugin
