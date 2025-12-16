@@ -3,7 +3,7 @@ Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "cor
 Compile / unmanagedResourceDirectories += baseDirectory.value.getParentFile / "core" / "src" / "main" / "resources"
 Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "lib" / "src" / "main" / "scala"
 
-val sbtTypelevelVersion      = "0.8.3" // Update in build.sbt as well
+val sbtTypelevelVersion      = "0.8.4" // Update in build.sbt as well
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-settings"   % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
