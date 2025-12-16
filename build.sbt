@@ -4,7 +4,7 @@ ThisBuild / tlCiReleaseBranches := Seq("main")
 
 enablePlugins(NoPublishPlugin)
 
-val sbtTypelevelVersion = "0.8.3" // Update in plugins.sbt as well
+val sbtTypelevelVersion = "0.8.4" // Update in plugins.sbt as well
 
 val scalaJsVersion = "1.20.1"
 
