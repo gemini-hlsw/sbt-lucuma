@@ -65,7 +65,14 @@ object LucumaDockerPlugin extends AutoPlugin {
     dockerBaseImage                 := "eclipse-temurin:21-jre",
     Docker / daemonUserUid          := Some("3624"),
     Docker / daemonUser             := "software",
-    dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
+    dockerBuildOptions ++= Seq(
+      "--platform",
+      "linux/amd64",
+      "--provenance",
+      "false",
+      "--output",
+      "type=docker"
+    ),
     dockerUpdateLatest              := true,
     dockerUsername                  := Some("noirlab"),
     Docker / mappings               := (Docker / mappings).value ++ {
