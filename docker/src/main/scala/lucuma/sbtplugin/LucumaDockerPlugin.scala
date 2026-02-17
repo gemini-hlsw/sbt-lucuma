@@ -65,7 +65,18 @@ object LucumaDockerPlugin extends AutoPlugin {
     dockerBaseImage                 := "eclipse-temurin:21-jre",
     Docker / daemonUserUid          := Some("3624"),
     Docker / daemonUser             := "software",
-    dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
+    // We pass the provenance and output parameters to force Docker to generate a manifest compatible with Heroku.
+    // See https://devcenter.heroku.com/articles/container-registry-and-runtime#known-issues-and-limitations
+    // and https://stackoverflow.com/questions/79639270/docker-heroku-error-from-registry-unsupported
+    // and ultimately https://forums.docker.com/t/force-image-to-use-manifest-media-type-docker-v2-schema-2-instead-of-oci/144974/22
+    dockerBuildOptions ++= Seq(
+      "--platform",
+      "linux/amd64",
+      "--provenance",
+      "false",
+      "--output",
+      "type=docker"
+    ),
     dockerUpdateLatest              := true,
     dockerUsername                  := Some("noirlab"),
     Docker / mappings               := (Docker / mappings).value ++ {
