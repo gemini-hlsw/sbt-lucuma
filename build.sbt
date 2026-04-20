@@ -46,22 +46,6 @@ lazy val lib = project
   )
   .dependsOn(core)
 
-lazy val sjsBundler = project
-  .in(file("sjs-bundler"))
-  .enablePlugins(SbtPlugin)
-  .settings(
-    name                := "sbt-lucuma-sjs-bundler",
-    tlVersionIntroduced := Map("2.12" -> "0.6.1"),
-    libraryDependencies ++= Seq(
-      "io.circe" %% "circe-parser" % "0.14.15"
-    ),
-    addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1"),
-    scriptedLaunchOpts  :=
-      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value),
-    Test / test         :=
-      scripted.toTask("").value
-  )
-
 lazy val css = project
   .in(file("css"))
   .enablePlugins(SbtPlugin)

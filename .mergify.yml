@@ -64,11 +64,3 @@ pull_request_rules:
       add:
       - lib
       remove: []
-- name: Label sjs-bundler PRs
-  conditions:
-  - files~=^sjs-bundler/
-  actions:
-    label:
-      add:
-      - sjs-bundler
-      remove: []

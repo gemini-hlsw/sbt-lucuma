@@ -34,15 +34,12 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaCoverage = settingKey[Boolean]("Globally enable/disable coverage (default true)")
 
     lazy val lucumaGlobalSettings = Seq(
-      resolvers += "s01-sonatype-public".at(
-        "https://s01.oss.sonatype.org/content/repositories/public/"
-      ),
       semanticdbEnabled := true,                       // enable SemanticDB
       semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
-      crossScalaVersions := Seq("3.3.3"),
+      crossScalaVersions := Seq("3.3.7"),
       scalaVersion       := crossScalaVersions.value.head
     )
 
@@ -81,7 +78,7 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaPublishSettings = Seq(
       organization     := "edu.gemini",
       organizationName := "Association of Universities for Research in Astronomy, Inc. (AURA)",
-      licenses += (("BSD-3-Clause", new URL("https://opensource.org/licenses/BSD-3-Clause"))),
+      licenses += (("BSD-3-Clause", url("https://opensource.org/licenses/BSD-3-Clause"))),
       developers       := List(
         Developer("cquiroz", "Carlos Quiroz", "cquiroz@gemini.edu", url("https://www.gemini.edu")),
         Developer("jluhrs", "Javier Lührs", "jluhrs@gemini.edu", url("https://www.gemini.edu")),
@@ -195,7 +192,7 @@ object LucumaPlugin extends AutoPlugin {
               UseRef.Public(
                 "codecov",
                 "codecov-action",
-                "v4"
+                "v6"
               ),
               name = Some("Upload code coverage data")
             )
