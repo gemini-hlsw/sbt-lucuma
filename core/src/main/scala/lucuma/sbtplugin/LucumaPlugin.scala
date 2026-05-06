@@ -104,7 +104,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCiSettings = Seq(
-      githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17")),
+      githubWorkflowJavaVersions := Seq(JavaSpec.temurin("25")),
       Def.derive(tlFatalWarnings := githubIsWorkflowBuild.value),
       evictionErrorLevel         := {
         if (githubIsWorkflowBuild.value)

@@ -62,7 +62,7 @@ object LucumaDockerPlugin extends AutoPlugin {
   )
 
   override def projectSettings = Seq(
-    dockerBaseImage                 := "eclipse-temurin:21-jre",
+    dockerBaseImage                 := "eclipse-temurin:25-jre",
     Docker / daemonUserUid          := Some("3624"),
     Docker / daemonUser             := "software",
     // We pass the provenance and output parameters to force Docker to generate a manifest compatible with Heroku.
