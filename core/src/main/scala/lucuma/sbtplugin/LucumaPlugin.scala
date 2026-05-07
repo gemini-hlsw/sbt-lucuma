@@ -44,7 +44,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalacSettings = Seq(
-      tlJdkRelease := Some(17)
+      tlJdkRelease := Some(25)
     )
 
     lazy val lucumaScalacProjectSettings = Seq(
