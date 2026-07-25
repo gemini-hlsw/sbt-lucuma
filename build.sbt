@@ -14,7 +14,7 @@ lazy val core = project
   .settings(
     name := "sbt-lucuma",
     addSbtPlugin("ch.epfl.scala"      % "sbt-scalafix"             % "0.14.7"),
-    addSbtPlugin("com.timushev.sbt"   % "sbt-rewarn"               % "0.1.3"),
+    addSbtPlugin("com.timushev.sbt"   % "sbt-rewarn"               % "0.2.0"),
     addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.6.2"),
     addSbtPlugin("com.github.sbt"     % "sbt-header"               % "5.11.0"),
     addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2"),
