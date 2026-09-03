@@ -34,15 +34,13 @@ In the tables below, **Activation** is either:
 
 The umbrella plugin tying everything together. It requires the relevant
 [sbt-typelevel](https://github.com/typelevel/sbt-typelevel) plugins plus the lucuma
-scalafmt/scalafix/scoverage plugins, and configures sensible defaults across the build:
+scalafmt/scalafix plugins, and configures sensible defaults across the build:
 
-- **Scala / JDK:** Scala `3.8.4`, `tlJdkRelease := 25`.
+- **Scala / JDK:** Scala `3.9.0`, `tlJdkRelease := 25`.
 - **Publishing:** `edu.gemini` organization, BSD-3-Clause license, developer list.
 - **CI:** fatal warnings in CI, `evictionErrorLevel` fatal in CI / relaxed locally,
   header + scalafmt + scalafix checks wired into the workflow, Mergify config, doc/dependency
   jobs disabled.
-- **Coverage:** scoverage enabled only in the CI `build` job (toggle with `lucumaCoverage`),
-  with coverage aggregation + Codecov upload appended to the workflow.
 - **Headers:** BSD-3-Clause C++-style line-comment header, applied automatically
   (`AutomateHeaderPlugin`).
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
@@ -52,8 +50,7 @@ Selected `autoImport`:
 
 | Key | Description |
 | --- | --- |
-| `lucumaCoverage` | Globally enable/disable coverage (default `true`). |
-| `lucumaGlobalSettings`, `lucumaScalaVersionSettings`, `lucumaScalacSettings`, `lucumaScalacProjectSettings`, `lucumaPublishSettings`, `lucumaCiSettings`, `lucumaHeaderSettings`, `lucumaGitSettings`, `lucumaDocSettings`, `lucumaCoverageProjectSettings`, `lucumaCoverageBuildSettings`, `lucumaDockerComposeSettings`, `lucumaStewardSettings` | Reusable setting sequences, exposed so individual projects can opt in/out of pieces. |
+| `lucumaGlobalSettings`, `lucumaScalaVersionSettings`, `lucumaScalacSettings`, `lucumaScalacProjectSettings`, `lucumaPublishSettings`, `lucumaCiSettings`, `lucumaHeaderSettings`, `lucumaGitSettings`, `lucumaDocSettings`, `lucumaDockerComposeSettings`, `lucumaStewardSettings` | Reusable setting sequences, exposed so individual projects can opt in/out of pieces. |
 
 ### `LucumaScalaJSPlugin`
 

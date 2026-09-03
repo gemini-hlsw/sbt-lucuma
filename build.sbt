@@ -1,4 +1,4 @@
-ThisBuild / tlBaseVersion       := "0.14"
+ThisBuild / tlBaseVersion       := "0.15"
 ThisBuild / crossScalaVersions  := Seq("2.12.21")
 ThisBuild / tlCiReleaseBranches := Seq("main")
 
@@ -19,7 +19,6 @@ lazy val core = project
     addSbtPlugin("com.github.sbt"     % "sbt-header"               % "5.11.0"),
     addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.4.0"),
     addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % scalaJsVersion),
-    addSbtPlugin("org.scoverage"      % "sbt-scoverage"            % "2.4.4"),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-ci"         % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
