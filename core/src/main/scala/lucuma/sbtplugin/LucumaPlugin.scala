@@ -15,8 +15,6 @@ import sbt.Keys.*
 import sbtheader.AutomateHeaderPlugin
 import sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
-import scoverage.ScoverageKeys.*
-import scoverage.ScoverageSbtPlugin
 
 object LucumaPlugin extends AutoPlugin {
 
@@ -30,9 +28,6 @@ object LucumaPlugin extends AutoPlugin {
   import TypelevelKernelPlugin.autoImport._
 
   object autoImport {
-
-    lazy val lucumaCoverage =
-      settingKey[Boolean]("Globally enable/disable coverage (default false)")
 
     lazy val lucumaGlobalSettings = Seq(
       semanticdbEnabled := true,                       // enable SemanticDB
@@ -105,15 +100,15 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCiSettings = Seq(
-      githubWorkflowJavaVersions := Seq(JavaSpec.temurin("25")),
+      githubWorkflowJavaVersions   := Seq(JavaSpec.temurin("25")),
       Def.derive(tlFatalWarnings := githubIsWorkflowBuild.value),
-      evictionErrorLevel         := {
+      evictionErrorLevel           := {
         if (githubIsWorkflowBuild.value)
           Level.Error // fatal in CI
         else
           Level.Warn  // relaxed locally for snapshot testing, etc.
       },
-      mergifyStewardConfig       := Some(
+      mergifyStewardConfig         := Some(
         MergifyStewardConfig(author = "lucuma-steward[bot]", mergeMinors = true)
       ),
       mergifyPrRules ~= {
@@ -127,9 +122,9 @@ object LucumaPlugin extends AutoPlugin {
           })
         }
       },
-      tlCiHeaderCheck            := true,
-      tlCiScalafmtCheck          := true,
-      githubWorkflowBuild        :=
+      tlCiHeaderCheck              := true,
+      tlCiScalafmtCheck            := true,
+      githubWorkflowBuild          :=
         githubWorkflowBuild.value.map {
           case step: WorkflowStep.Sbt if step.name.exists(_.contains("Check headers")) =>
             WorkflowStep.Sbt(
@@ -147,9 +142,10 @@ object LucumaPlugin extends AutoPlugin {
             )
           case step                                                                    => step
         },
-      tlCiScalafixCheck          := true,
-      tlCiDocCheck               := false, // we are generating empty docs anyway
-      tlCiDependencyGraphJob     := false
+      tlCiScalafixCheck            := true,
+      tlCiDocCheck                 := false, // we are generating empty docs anyway
+      tlCiDependencyGraphJob       := false,
+      githubWorkflowArtifactUpload := true
     )
 
     lazy val lucumaGitSettings = Seq(
@@ -163,42 +159,6 @@ object LucumaPlugin extends AutoPlugin {
 
           Try("git status -s".!!.trim.length > 0).getOrElse(true)
         }
-      }
-    )
-
-    @deprecated("Separated into build/project settings", "0.6.1")
-    lazy val lucumaCoverageSettings =
-      lucumaCoverageProjectSettings ++ lucumaCoverageBuildSettings
-
-    lazy val lucumaCoverageProjectSettings = Seq(
-      coverageEnabled :=
-        lucumaCoverage.value &&                                    // globally enabled
-          githubIsWorkflowBuild.value &&                           // enable in CI
-          Option(System.getenv("GITHUB_JOB")).contains("build") && // only for build job
-          crossVersion.value == CrossVersion.binary                // Scala.js overrides this to add `_sjs1`
-    )
-
-    lazy val lucumaCoverageBuildSettings = Seq(
-      lucumaCoverage               := false,
-      // can't reuse artifacts b/c need to re-compile without coverage enabled
-      githubWorkflowArtifactUpload := !lucumaCoverage.value,
-      githubWorkflowBuildPostamble ++= {
-        if (lucumaCoverage.value)
-          Seq(
-            WorkflowStep.Sbt(
-              List("coverageReport", "coverageAggregate"),
-              name = Some("Aggregate coverage reports")
-            ),
-            WorkflowStep.Use(
-              UseRef.Public(
-                "codecov",
-                "codecov-action",
-                "v6"
-              ),
-              name = Some("Upload code coverage data")
-            )
-          )
-        else Nil
       }
     )
 
@@ -249,8 +209,7 @@ object LucumaPlugin extends AutoPlugin {
       LucumaScalafmtPlugin &&
       LucumaScalafixPlugin &&
       GenerativePlugin &&
-      GitHubActionsPlugin &&
-      ScoverageSbtPlugin
+      GitHubActionsPlugin
 
   override def trigger: PluginTrigger =
     allRequirements
@@ -263,14 +222,13 @@ object LucumaPlugin extends AutoPlugin {
       lucumaScalacSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
-      lucumaCoverageBuildSettings ++
       lucumaDockerComposeSettings ++
       lucumaStewardSettings ++
       lucumaGitSettings ++
       commandAliasSettings
 
   override val projectSettings =
-    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ lucumaCoverageProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
   lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
 
