@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2026 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package lucuma.sbtplugin
@@ -31,7 +31,8 @@ object LucumaPlugin extends AutoPlugin {
 
   object autoImport {
 
-    lazy val lucumaCoverage = settingKey[Boolean]("Globally enable/disable coverage (default true)")
+    lazy val lucumaCoverage =
+      settingKey[Boolean]("Globally enable/disable coverage (default false)")
 
     lazy val lucumaGlobalSettings = Seq(
       semanticdbEnabled := true,                       // enable SemanticDB
@@ -39,7 +40,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaScalaVersionSettings = Seq(
-      crossScalaVersions := Seq("3.8.4"),
+      crossScalaVersions := Seq("3.9.0"),
       scalaVersion       := crossScalaVersions.value.head
     )
 
@@ -68,7 +69,7 @@ object LucumaPlugin extends AutoPlugin {
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(
         HeaderLicense.Custom(
-          """|Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
+          """|Copyright (c) 2016-2026 Association of Universities for Research in Astronomy, Inc. (AURA)
            |For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
            |""".stripMargin
         )
@@ -178,7 +179,7 @@ object LucumaPlugin extends AutoPlugin {
     )
 
     lazy val lucumaCoverageBuildSettings = Seq(
-      lucumaCoverage               := true,
+      lucumaCoverage               := false,
       // can't reuse artifacts b/c need to re-compile without coverage enabled
       githubWorkflowArtifactUpload := !lucumaCoverage.value,
       githubWorkflowBuildPostamble ++= {
