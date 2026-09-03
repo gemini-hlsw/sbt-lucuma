@@ -1,0 +1,8 @@
+> checkShardMatrix
+> checkTestStepEnv
+> checkFailFast
+
+# off by default
+> set ThisBuild / lucumaTestShards := 0
+-> checkShardMatrix
+-> checkTestStepEnv

@@ -3,15 +3,16 @@ Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "cor
 Compile / unmanagedResourceDirectories += baseDirectory.value.getParentFile / "core" / "src" / "main" / "resources"
 Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "lib" / "src" / "main" / "scala"
 
-val sbtTypelevelVersion      = "0.8.7" // Update in build.sbt as well
-addSbtPlugin("org.typelevel"    % "sbt-typelevel-settings"   % sbtTypelevelVersion)
-addSbtPlugin("org.typelevel"    % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
-addSbtPlugin("org.typelevel"    % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
-addSbtPlugin("com.github.sbt"   % "sbt-native-packager"      % "1.11.7")
-addSbtPlugin("com.github.sbt"   % "sbt-header"               % "5.11.0")
-addSbtPlugin("org.scalameta"    % "sbt-scalafmt"             % "2.6.2")
-addSbtPlugin("ch.epfl.scala"    % "sbt-scalafix"             % "0.14.7")
-addSbtPlugin("com.timushev.sbt" % "sbt-rewarn"               % "0.2.0")
-addSbtPlugin("com.armanbilge"   % "sbt-bundlemon"            % "0.1.4")
-addSbtPlugin("com.eed3si9n"     % "sbt-buildinfo"            % "0.13.1")
-addSbtPlugin("com.timushev.sbt" % "sbt-updates"              % "0.7.0")
+val sbtTypelevelVersion         = "0.8.7" // Update in build.sbt as well
+addSbtPlugin("org.typelevel"       % "sbt-typelevel-settings"   % sbtTypelevelVersion)
+addSbtPlugin("org.typelevel"       % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
+addSbtPlugin("org.typelevel"       % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
+addSbtPlugin("com.github.sbt"      % "sbt-native-packager"      % "1.11.7")
+addSbtPlugin("com.github.sbt"      % "sbt-header"               % "5.11.0")
+addSbtPlugin("org.scalameta"       % "sbt-scalafmt"             % "2.6.2")
+addSbtPlugin("ch.epfl.scala"       % "sbt-scalafix"             % "0.14.7")
+addSbtPlugin("com.timushev.sbt"    % "sbt-rewarn"               % "0.2.0")
+addSbtPlugin("com.armanbilge"      % "sbt-bundlemon"            % "0.1.4")
+addSbtPlugin("com.eed3si9n"        % "sbt-buildinfo"            % "0.13.1")
+addSbtPlugin("com.timushev.sbt"    % "sbt-updates"              % "0.7.0")
+addSbtPlugin("com.github.reibitto" % "sbt-test-shards"          % "0.3.0")

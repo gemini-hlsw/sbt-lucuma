@@ -20,7 +20,8 @@ CSS bundling, Docker packaging). It is built on [sbt-typelevel](https://github.c
   edits.
 - **Duplicated version pins.** `sbtTypelevelVersion` and `scalaJsVersion` are declared in
   **both** `build.sbt` and `project/plugins.sbt` (with "update in the other as well" comments).
-  Bump both.
+  Bump both. Same for `sbt-test-shards`, which `LucumaShardingPlugin` imports: the meta-build
+  compiles that source, so the plugin must be on both classpaths.
 
 ## Module layout
 
@@ -29,7 +30,7 @@ and `docker` depend on `core`.
 
 | Dir | Artifact | Notable contents |
 | --- | --- | --- |
-| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`, `LucumaAffectedPlugin` (pure logic in `AffectedProjects`). Unit tests in `core/src/test`, scripted tests in `core/src/sbt-test`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
+| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`, `LucumaAffectedPlugin` (pure logic in `AffectedProjects`), `LucumaShardingPlugin`. Unit tests in `core/src/test`, scripted tests in `core/src/sbt-test`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
 | `lib/` | `sbt-lucuma-lib` | `LucumaLibPlugin` (published libraries; adds MiMa). |
 | `app/` | `sbt-lucuma-app` | `LucumaAppPlugin` (applications; date+git version, no MiMa). |
 | `css/` | `sbt-lucuma-css` | `LucumaCssPlugin` (opt-in CSS bundling). Has scripted tests. |

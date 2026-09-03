@@ -148,6 +148,30 @@ Try it locally with `LUCUMA_AFFECTED_BASE=origin/main sbt lucumaAffectedProjects
 > dependencies. If those live outside the project that uses them, add them to
 > `lucumaAffectedAlwaysPaths`.
 
+### `LucumaShardingPlugin`
+
+**Activation:** Automatic (requires `LucumaPlugin`), but does nothing until you set
+`ThisBuild / lucumaTestShards := 8`.
+
+Spreads the CI test run over that many jobs.
+
+[`sbt-test-shards`](https://github.com/reibitto/sbt-test-shards) does the splitting: it reads
+`TEST_SHARD` and `TEST_SHARD_COUNT` and filters each project's suites down to the ones belonging
+to this shard. This plugin adds the `shard` matrix axis, passes those two values into the test
+step, and turns off `fail-fast` so one slow or flaky shard doesn't cancel the others.
+
+Composes with `LucumaAffectedPlugin`: the affected set decides *which* projects to test, shards
+decide *where* their tests run.
+
+Steps that sbt-typelevel runs once per build — header check, scalafix, MiMa, doc — are
+automatically pinned to shard `0`, so they don't repeat. That does make shard 0 the slowest.
+Repos that care can disable them (`tlCiHeaderCheck := false` and friends) and add their own job,
+as `lucuma-odb` does.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `lucumaTestShards` | `0` | Number of jobs to spread tests over. `0` or `1` means no sharding. |
+
 ---
 
 ## `sbt-lucuma-lib`
