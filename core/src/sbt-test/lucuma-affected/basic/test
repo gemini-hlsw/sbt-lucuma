@@ -1,0 +1,38 @@
+# a clean diff affects nothing
+> checkAffected
+
+# a change to `a` reaches its dependent `b`, and nothing else
+$ copy-file diffs/a.txt changed.txt
+> checkAffected a b
+
+# sources declared outside a project's base directory still belong to it
+$ copy-file diffs/shared.txt changed.txt
+> checkAffected x
+
+# an unrelated project is left alone
+$ copy-file diffs/c.txt changed.txt
+> checkAffected c
+
+# documentation affects nothing
+$ copy-file diffs/ignored.txt changed.txt
+> checkAffected
+
+# a build definition change runs everything
+$ copy-file diffs/buildsbt.txt changed.txt
+> checkAffected a b c d e x
+
+# so does a file no project claims
+$ copy-file diffs/unknown.txt changed.txt
+> checkAffected a b c d e x
+
+# a project that aggregates but owns tests is still scheduled
+$ copy-file diffs/e.txt changed.txt
+> checkAffected e
+
+# the command runs what the task reports, including an overridden diff
+$ copy-file diffs/a.txt changed.txt
+> lucumaTestAffected
+
+# ... and a full run really does reach every project
+$ copy-file diffs/buildsbt.txt changed.txt
+-> lucumaTestAffected

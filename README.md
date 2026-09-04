@@ -96,6 +96,62 @@ The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 Adds a "Monitor bundle size" CI step (runs `bundleMon` for the `rootJS` matrix project) and
 sets `bundleMonCompression := Brotli`.
 
+### `LucumaAffectedPlugin`
+
+**Activation:** Automatic (requires `LucumaPlugin`). Disable with
+`ThisBuild / lucumaAffectedTests := false`.
+
+In CI, runs only the tests a pull request can break.
+
+It finds the changed projects by matching changed files against each project's source and
+resource directories, then adds everything that depends on them. The dependency graph comes
+from sbt itself, so a new `dependsOn` is picked up with no extra config.
+
+When it can't tell what changed, it runs everything. That happens when:
+
+- a changed file matches `lucumaAffectedAlwaysPaths`: the build (`*.sbt`, `project/**`,
+  `flake.*`, `.jvmopts`), CI (`.github/**`), node (`package*.json`, lockfiles, `.npmrc`,
+  since Scala.js tests run on it) or `docker-compose.yml`
+- a changed file belongs to no project
+- there is no base ref to diff against, which is the case for pushes to `main`
+
+Files matching `lucumaAffectedIgnorePaths` are dropped before any of that, so a PR touching only
+those runs no tests at all. The defaults are deliberately narrow — docs (`**.md`, `docs/**`,
+`notes/**`, `LICENSE`) and editor or environment files (`.editorconfig`, `.envrc`,
+`.gitattributes`, `.gitignore`, `.git-blame-ignore-revs`, `.githooks/**`, `.vscode/**`,
+`.idea/**`) — because an ignore can't be overridden. Anything else is a judgement call about
+your repository, so add it there:
+
+```scala
+ThisBuild / lucumaAffectedIgnorePaths ++= Seq("**vite.config.*", "**hasura/**")
+```
+
+The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffected` instead of
+`test`. No project names appear in it, so adding or renaming projects needs no regeneration.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `lucumaAffectedTests` | `true` | Set to `false` to always run the full suite. |
+| `lucumaAffectedAlwaysPaths` | see above | Globs that trigger a full run. |
+| `lucumaAffectedIgnorePaths` | see above | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
+| `lucumaAffectedBaseRef` | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` | What to diff against. `None` runs everything. |
+
+Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
+not `core/src/sbt-test/foo/build.sbt`.
+
+| Task | Description |
+| --- | --- |
+| `lucumaAffectedChangedFiles` | Changed files, including uncommitted and untracked ones. `None` if no diff was possible. |
+| `lucumaAffectedProjects` | The projects to test. |
+| `lucumaTestAffected` | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
+
+Try it locally with `LUCUMA_AFFECTED_BASE=origin/main sbt lucumaAffectedProjects`.
+
+> [!WARNING]
+> sbt doesn't know about GraphQL schemas used by codegen, database migrations, or npm
+> dependencies. If those live outside the project that uses them, add them to
+> `lucumaAffectedAlwaysPaths`.
+
 ---
 
 ## `sbt-lucuma-lib`

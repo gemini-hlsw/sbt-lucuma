@@ -29,7 +29,7 @@ and `docker` depend on `core`.
 
 | Dir | Artifact | Notable contents |
 | --- | --- | --- |
-| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
+| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`, `LucumaAffectedPlugin` (pure logic in `AffectedProjects`). Unit tests in `core/src/test`, scripted tests in `core/src/sbt-test`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
 | `lib/` | `sbt-lucuma-lib` | `LucumaLibPlugin` (published libraries; adds MiMa). |
 | `app/` | `sbt-lucuma-app` | `LucumaAppPlugin` (applications; date+git version, no MiMa). |
 | `css/` | `sbt-lucuma-css` | `LucumaCssPlugin` (opt-in CSS bundling). Has scripted tests. |
@@ -55,6 +55,7 @@ and `docker` depend on `core`.
 sbt compile                 # compile all modules (note: meta-build also compiles core/lib)
 sbt test                    # runs module tests; for css this runs the scripted tests
 sbt css/scripted            # run css scripted tests directly
+sbt core/scripted           # run core scripted tests (not wired into `test`; CI runs it)
 sbt <module>/publishLocal   # publish one artifact to ~/.ivy2/local for manual testing
 sbt headerCreateAll         # apply license headers
 sbt scalafmtAll scalafmtSbt # format
@@ -65,6 +66,7 @@ CI runs (see `.github/workflows/ci.yml`):
 ```bash
 sbt headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck lucumaScalafmtCheck lucumaScalafixCheck
 sbt test
+sbt core/scripted
 sbt mimaReportBinaryIssues
 sbt tlCiRelease            # publish (release job)
 ```

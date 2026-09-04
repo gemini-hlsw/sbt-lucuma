@@ -2,6 +2,10 @@ ThisBuild / tlBaseVersion       := "0.15"
 ThisBuild / crossScalaVersions  := Seq("2.12.21")
 ThisBuild / tlCiReleaseBranches := Seq("main")
 
+// core's plugin behavior is covered by scripted; css runs its own via `Test / test`
+ThisBuild / githubWorkflowBuild +=
+  WorkflowStep.Sbt(List("core/scripted"), name = Some("Scripted tests"))
+
 enablePlugins(NoPublishPlugin)
 
 val sbtTypelevelVersion = "0.8.7" // Update in plugins.sbt as well
@@ -12,7 +16,7 @@ lazy val core = project
   .in(file("core"))
   .enablePlugins(SbtPlugin)
   .settings(
-    name := "sbt-lucuma",
+    name                                   := "sbt-lucuma",
     addSbtPlugin("ch.epfl.scala"      % "sbt-scalafix"             % "0.14.7"),
     addSbtPlugin("com.timushev.sbt"   % "sbt-rewarn"               % "0.2.0"),
     addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.6.2"),
@@ -24,7 +28,10 @@ lazy val core = project
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-mergify"    % sbtTypelevelVersion),
     addSbtPlugin("com.armanbilge"     % "sbt-bundlemon"            % "0.1.4"),
-    addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.7.0")
+    addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.7.0"),
+    libraryDependencies += "org.scalameta" %% "munit" % "1.2.0" % Test,
+    scriptedLaunchOpts                     :=
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
   )
 
 lazy val app = project
