@@ -19,11 +19,15 @@ $ copy-file diffs/ignored.txt changed.txt
 
 # a build definition change runs everything
 $ copy-file diffs/buildsbt.txt changed.txt
-> checkAffected a b c d x
+> checkAffected a b c d e x
 
 # so does a file no project claims
 $ copy-file diffs/unknown.txt changed.txt
-> checkAffected a b c d x
+> checkAffected a b c d e x
+
+# a project that aggregates but owns tests is still scheduled
+$ copy-file diffs/e.txt changed.txt
+> checkAffected e
 
 # the command runs what the task reports, including an overridden diff
 $ copy-file diffs/a.txt changed.txt

@@ -77,8 +77,11 @@ class AffectedProjectsSuite extends FunSuite {
     assertEquals(p.projects.sorted, Seq("app", "css", "modelJS", "modelJVM"))
   }
 
-  test("aggregators are never scheduled") {
+  // `testable` is supplied by the caller, which excludes pure aggregators but keeps any that
+  // define tests of their own; here `root` stands in for the pure kind.
+  test("pure aggregators are never scheduled") {
     assert(!run("app/src/main/scala/Main.scala").projects.contains("root"))
+    assert(!run("build.sbt").projects.contains("root"))
   }
 
   test("ignored paths affect nothing") {

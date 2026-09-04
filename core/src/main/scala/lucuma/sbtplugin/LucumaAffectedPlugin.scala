@@ -146,9 +146,10 @@ object LucumaAffectedPlugin extends AutoPlugin {
         .groupBy(_._1)
         .map { case (k, v) => k -> v.map(_._2).toSet }
 
-    // aggregators would drag their whole subtree back in, so never test them directly
+    // Scheduling an aggregator runs its whole subtree, so skip the ones that are pure grouping.
+    // One that owns tests still has to run them, even though doing so over-runs its children.
     val testable = structure.allProjectRefs
-      .filter(r => deps.aggregate.getOrElse(r, Nil).isEmpty)
+      .filter(r => deps.aggregate.getOrElse(r, Nil).isEmpty || hasTestSources(structure, r))
       .map(_.project)
       .toSet
 
@@ -177,6 +178,14 @@ object LucumaAffectedPlugin extends AutoPlugin {
       ProjectInfo(ref.project, dirs)
     }
   }
+
+  /** Cheap stand-in for "defines tests": a Test source directory holding at least one file. */
+  private def hasTestSources(structure: BuildStructure, ref: ProjectRef): Boolean =
+    (ref / Test / unmanagedSourceDirectories)
+      .get(structure.data)
+      .toSeq
+      .flatten
+      .exists(d => d.isDirectory && (PathFinder(d) ** "*").get().exists(_.isFile))
 
   private def sourceDirs(structure: BuildStructure, ref: ProjectRef): Seq[Path] = {
     val data                                                   = structure.data

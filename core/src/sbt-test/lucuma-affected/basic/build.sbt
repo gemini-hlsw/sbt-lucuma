@@ -17,6 +17,9 @@ lazy val b = project.in(file("b")).dependsOn(a)
 
 lazy val c = project.in(file("c"))
 
+// aggregates, but owns tests too, so it must still be scheduled
+lazy val e = project.in(file("e")).aggregate(c)
+
 // blows up if `lucumaTestAffected` schedules it, which it should only do on a full run
 lazy val d = project
   .in(file("d"))
