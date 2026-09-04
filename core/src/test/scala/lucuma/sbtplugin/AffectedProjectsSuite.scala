@@ -127,34 +127,42 @@ class AffectedProjectsSuite extends FunSuite {
     ).foreach(f => assert(withDefaults(f).all, f))
   }
 
-  test("the default globs run nothing for docs, editor, bot and bundler config") {
+  test("the default globs run nothing for docs, editor and local environment files") {
     List(
       "README.md",
       "docs/guide.md",
+      "notes/scratch.txt",
       "LICENSE",
+      ".editorconfig",
       ".envrc",
       ".gitattributes",
+      ".gitignore",
+      ".git-blame-ignore-revs",
       ".githooks/pre-commit",
       ".vscode/settings.json",
-      ".mergify.yml",
-      ".scala-steward.conf",
-      ".github/renovate.json",
-      ".github/dependabot.yml",
-      ".scalafmt.conf",
-      ".scalafix-common.conf",
-      ".prettierrc",
-      ".prettierignore",
-      ".stylelintignore",
-      ".sopsrc",
-      "explore/hasura/user-prefs/config.yaml",
-      "explore/hasura/user-prefs/metadata/databases/default/tables/public_exploreChartType.yaml",
-      "hasura/config.yaml",
-      "vite.config.ts",
-      "model/vite.config.mts",
-      "app/tailwind.config.js"
+      ".idea/modules.xml"
     ).foreach { f =>
       val p = withDefaults(f)
       assert(!p.all && p.projects.isEmpty, s"$f -> ${p.reason.getOrElse(p.projects.mkString(","))}")
+    }
+  }
+
+  // Deliberately not ignored by default: whether these can affect a build is a per-repository
+  // call, so each repo adds its own rather than inheriting ours. Until then they fail safe.
+  test("repository-specific config is not ignored out of the box") {
+    List(
+      ".mergify.yml",
+      ".scala-steward.conf",
+      ".github/renovate.json",
+      ".scalafmt.conf",
+      ".prettierrc",
+      ".sopsrc",
+      "explore/hasura/config.yaml",
+      "vite.config.ts"
+    ).foreach { f =>
+      // some of these fail open via the always-list, others because no project claims them;
+      // either way nothing gets skipped
+      assertEquals(withDefaults(f).projects.sorted, testable.toSeq.sorted, f)
     }
   }
 

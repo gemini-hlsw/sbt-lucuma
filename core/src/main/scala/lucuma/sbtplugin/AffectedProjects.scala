@@ -39,7 +39,11 @@ private[sbtplugin] object AffectedProjects {
     "docker-compose.yml"
   )
 
-  /** These cannot break a test, so they are dropped before anything else is considered. */
+  /**
+   * Files that can never affect a build, whatever the repository. Dropped before anything else is
+   * considered, so a `lucumaAffectedAlwaysPaths` entry cannot win one back -- which is why nothing
+   * repository-specific belongs here. Add those per repository instead.
+   */
   val DefaultIgnorePaths: Seq[String] = Seq(
     // docs
     "**.md",
@@ -54,28 +58,7 @@ private[sbtplugin] object AffectedProjects {
     ".git-blame-ignore-revs",
     ".githooks/**",
     ".vscode/**",
-    ".idea/**",
-    // bots: these change how PRs are handled, not what the code does
-    ".mergify.yml",
-    ".scala-steward.conf",
-    ".github/dependabot.yml",
-    ".github/renovate.json",
-    // formatters and linters: CI checks these in their own steps, which always run
-    ".scalafmt.conf",
-    ".scalafmt-common.conf",
-    ".scalafix.conf",
-    ".scalafix-common.conf",
-    ".prettierignore",
-    ".stylelintignore",
-    "**.prettierrc*",
-    "**.stylelintrc*",
-    // secrets tooling and hasura metadata: deployment concerns, not build inputs
-    ".sopsrc",
-    "**hasura/**",
-    // bundler config: shapes the app build, never a Scala or Scala.js test
-    "**vite.config.*",
-    "**tailwind.config.*",
-    "**postcss.config.*"
+    ".idea/**"
   )
 
   def matches(path: String, glob: String): Boolean =

@@ -115,12 +115,16 @@ When it can't tell what changed, it runs everything. That happens when:
 - a changed file belongs to no project
 - there is no base ref to diff against, which is the case for pushes to `main`
 
-Files matching `lucumaAffectedIgnorePaths` are dropped before any of that, so a PR touching
-only those runs no tests at all. The defaults cover docs, editor and environment files
-(`.vscode/**`, `.envrc`, `.githooks/**`), bot config (`.mergify.yml`, `.scala-steward.conf`,
-`.github/renovate.json`), formatter and linter config (`.scalafmt*.conf`, `.scalafix*.conf`,
-`**.prettierrc*`), bundler config (`**vite.config.*`, `**tailwind.config.*`,
-`**postcss.config.*`) and deployment config (`.sopsrc`, `**hasura/**`).
+Files matching `lucumaAffectedIgnorePaths` are dropped before any of that, so a PR touching only
+those runs no tests at all. The defaults are deliberately narrow — docs (`**.md`, `docs/**`,
+`notes/**`, `LICENSE`) and editor or environment files (`.editorconfig`, `.envrc`,
+`.gitattributes`, `.gitignore`, `.git-blame-ignore-revs`, `.githooks/**`, `.vscode/**`,
+`.idea/**`) — because an ignore can't be overridden. Anything else is a judgement call about
+your repository, so add it there:
+
+```scala
+ThisBuild / lucumaAffectedIgnorePaths ++= Seq("**vite.config.*", "**hasura/**")
+```
 
 The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffected` instead of
 `test`. No project names appear in it, so adding or renaming projects needs no regeneration.
@@ -129,7 +133,7 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 | --- | --- | --- |
 | `lucumaAffectedTests` | `true` | Set to `false` to always run the full suite. |
 | `lucumaAffectedAlwaysPaths` | see above | Globs that trigger a full run. |
-| `lucumaAffectedIgnorePaths` | see above | Globs that trigger nothing. |
+| `lucumaAffectedIgnorePaths` | see above | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
 | `lucumaAffectedBaseRef` | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` | What to diff against. `None` runs everything. |
 
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
