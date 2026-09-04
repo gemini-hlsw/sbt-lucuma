@@ -112,30 +112,25 @@ object LucumaAffectedPlugin extends AutoPlugin {
   /**
    * `lucumaTestAffected` -- runs `Test/test` on the affected projects, restricted to the current
    * project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
+   *
+   * The project list comes from the `lucumaAffectedProjects` task rather than being recomputed, so
+   * the command can never disagree with the task -- including when a build overrides
+   * `lucumaAffectedChangedFiles` to supply the diff itself.
    */
   private def testAffected: Command =
     Command.command("lucumaTestAffected") { st =>
-      val log    = st.log
-      val scoped = computePlan(st).projects.filter(aggregateClosure(st))
+      val (next, projects) = Project.extract(st).runTask(ThisBuild / lucumaAffectedProjects, st)
+      val log              = next.log
+      val scoped           = projects.filter(aggregateClosure(next))
 
       if (scoped.isEmpty) {
         log.info("[affected] nothing to test")
-        st
+        next
       } else {
         log.info(s"[affected] testing: ${scoped.mkString(", ")}")
-        scoped.map(id => s"$id/Test/test").mkString("all ", " ", "") :: st
+        scoped.map(id => s"$id/Test/test").mkString("all ", " ", "") :: next
       }
     }
-
-  private def computePlan(st: State): AffectedProjects.Plan = {
-    val extracted = Project.extract(st)
-    val root      = extracted.get(ThisBuild / baseDirectory)
-    val changed   =
-      extracted.get(ThisBuild / lucumaAffectedBaseRef).flatMap(changedFiles(root, _, st.log))
-    val result    = plan(st, changed, st.log)
-    result.reason.foreach(r => st.log.info(s"[affected] running everything: $r"))
-    result
-  }
 
   private def plan(st: State, changed: Option[Seq[String]], log: Logger): AffectedProjects.Plan = {
     val extracted = Project.extract(st)

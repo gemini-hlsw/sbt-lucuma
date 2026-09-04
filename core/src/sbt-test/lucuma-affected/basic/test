@@ -19,8 +19,16 @@ $ copy-file diffs/ignored.txt changed.txt
 
 # a build definition change runs everything
 $ copy-file diffs/buildsbt.txt changed.txt
-> checkAffected a b c x
+> checkAffected a b c d x
 
 # so does a file no project claims
 $ copy-file diffs/unknown.txt changed.txt
-> checkAffected a b c x
+> checkAffected a b c d x
+
+# the command runs what the task reports, including an overridden diff
+$ copy-file diffs/a.txt changed.txt
+> lucumaTestAffected
+
+# ... and a full run really does reach every project
+$ copy-file diffs/buildsbt.txt changed.txt
+-> lucumaTestAffected

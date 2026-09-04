@@ -17,6 +17,11 @@ lazy val b = project.in(file("b")).dependsOn(a)
 
 lazy val c = project.in(file("c"))
 
+// blows up if `lucumaTestAffected` schedules it, which it should only do on a full run
+lazy val d = project
+  .in(file("d"))
+  .settings(Test / test := sys.error("d's tests should not have run"))
+
 // stands in for a crossProject: sources live outside the project's base directory
 lazy val x = project
   .in(file("x"))
