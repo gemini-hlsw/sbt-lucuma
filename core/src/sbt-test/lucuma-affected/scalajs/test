@@ -1,0 +1,6 @@
+# narrowing on: the test command is rewritten and scalaJSLink survives
+> checkWorkflow lucumaTestAffected
+
+# narrowing off: the step is left exactly as sbt-typelevel generated it
+> set ThisBuild / lucumaAffectedTests := false
+> checkWorkflow test
