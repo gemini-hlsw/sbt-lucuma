@@ -86,28 +86,33 @@ object LucumaAffectedPlugin extends AutoPlugin {
       result.projects
     },
     commands += testAffected,
-    // the `Test` step of the generated build job runs only what the diff can break
-    githubWorkflowBuild        := {
-      val steps = githubWorkflowBuild.value
-      if (lucumaAffectedTests.value)
-        steps.map {
-          case step: WorkflowStep.Sbt if step.commands == List("test") =>
-            WorkflowStep.Sbt(
-              List("lucumaTestAffected"),
-              step.id,
-              Some("Test affected projects"),
-              step.cond,
-              step.env,
-              step.params,
-              step.timeoutMinutes,
-              step.preamble,
-              step.continueOnError
-            )
-          case step                                                    => step
-        }
-      else steps
+    // Rewrite the generated job rather than `githubWorkflowBuild`, because TypelevelCiJSPlugin
+    // finds its own insertion point by matching `commands == List("test")`. Renaming the command
+    // any earlier makes that match fail and silently drops the scalaJSLink step.
+    githubWorkflowGeneratedCI  := {
+      val jobs = githubWorkflowGeneratedCI.value
+      if (lucumaAffectedTests.value) jobs.map(narrowTestStep) else jobs
     }
   )
+
+  private def narrowTestStep(job: WorkflowJob): WorkflowJob =
+    if (job.id != "build") job
+    else
+      job.withSteps(job.steps.map {
+        case step: WorkflowStep.Sbt if step.commands == List("test") =>
+          WorkflowStep.Sbt(
+            List("lucumaTestAffected"),
+            step.id,
+            Some("Test affected projects"),
+            step.cond,
+            step.env,
+            step.params,
+            step.timeoutMinutes,
+            step.preamble,
+            step.continueOnError
+          )
+        case step                                                    => step
+      })
 
   /**
    * `lucumaTestAffected` -- runs `Test/test` on the affected projects, restricted to the current
