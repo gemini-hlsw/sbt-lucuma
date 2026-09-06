@@ -25,8 +25,14 @@ ThisBuild / checkGate := {
 
   if (affected.outputs.get("projects") != Some("steps.report.outputs.projects"))
     sys.error(s"unexpected outputs: ${affected.outputs}")
-  if (!affected.steps.flatMap(_.name).contains("Compute affected projects"))
-    sys.error(s"affected job has no report step: ${affected.steps.flatMap(_.name)}")
+  val report = affected.steps
+    .find(_.name.contains("Compute affected projects"))
+    .getOrElse(sys.error(s"no report step: ${affected.steps.flatMap(_.name)}"))
+
+  // a merge to main is measured against the previous main, not treated as "everything"
+  val pushBase = report.env.get("LUCUMA_AFFECTED_PUSH_BASE")
+  if (pushBase != Some("${{ github.event.before }}"))
+    sys.error(s"report step has no push base ref: ${report.env}")
 
   if (!deploy.needs.contains("affected")) sys.error(s"deploy needs ${deploy.needs}")
 
