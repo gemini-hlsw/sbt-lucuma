@@ -113,7 +113,7 @@ When it can't tell what changed, it runs everything. That happens when:
   `flake.*`, `.jvmopts`), CI (`.github/**`), node (`package*.json`, lockfiles, `.npmrc`,
   since Scala.js tests run on it) or `docker-compose.yml`
 - a changed file belongs to no project
-- there is no base ref to diff against, which is the case for pushes to `main`
+- there is no base ref to diff against
 
 Files matching `lucumaAffectedIgnorePaths` are dropped before any of that, so a PR touching only
 those runs no tests at all. The defaults are deliberately narrow — docs (`**.md`, `docs/**`,
@@ -134,7 +134,7 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 | `lucumaAffectedTests` | `true` | Set to `false` to always run the full suite. |
 | `lucumaAffectedAlwaysPaths` | see above | Globs that trigger a full run. |
 | `lucumaAffectedIgnorePaths` | see above | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
-| `lucumaAffectedBaseRef` | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` | What to diff against. `None` runs everything. |
+| `lucumaAffectedBaseRef` | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF`, else the previous commit on a push | What to diff against. `None` runs everything. |
 
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
 not `core/src/sbt-test/foo/build.sbt`.
@@ -173,6 +173,12 @@ dependency closure: gating on `explore_app` also fires for `ui_lib` and `schemas
 Both read `needs.affected.outputs.projects`, published by a generated `affected` job. That job
 costs an sbt boot, so it's only generated once something depends on it — adding
 `lucumaAffectedJobId` to a `needs` list is what brings it into being.
+
+On a merge to `main` that job diffs against the previous `main` (`github.event.before`) rather than
+falling back to "everything", so a merge that can't reach an app doesn't redeploy it. The test run
+does **not** do this: `lucumaTestAffected` sees no base ref on a push and runs the full suite, which
+is the backstop for everything the dependency graph can't see. A first push or a force-push gives no
+usable commit, and then both fall back to running everything.
 
 | Task | Description |
 | --- | --- |

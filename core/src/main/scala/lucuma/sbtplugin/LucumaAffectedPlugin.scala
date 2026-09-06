@@ -101,7 +101,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
     lucumaAffectedBaseRef      := sys.env
       .get("LUCUMA_AFFECTED_BASE")
       .filter(_.nonEmpty)
-      .orElse(sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty).map("origin/" + _)),
+      .orElse(sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty).map("origin/" + _))
+      .orElse(sys.env.get(PushBaseEnv).filter(isCommit)),
     lucumaAffectedChangedFiles := {
       val log = streams.value.log
       (ThisBuild / lucumaAffectedBaseRef).value match {
@@ -150,6 +151,20 @@ object LucumaAffectedPlugin extends AutoPlugin {
     result
   }
 
+  /**
+   * Set on the `affected` job only, from `github.event.before`, so a merge to `main` is measured
+   * against the previous `main` rather than falling back to "everything". Deliberately absent from
+   * the build job: tests on `main` stay exhaustive, which is the backstop for everything the
+   * dependency graph can't see.
+   */
+  private val PushBaseEnv = "LUCUMA_AFFECTED_PUSH_BASE"
+
+  /** Actions sends all zeroes for a branch's first push, and nothing for a deleted ref. */
+  private def isCommit(sha: String): Boolean = sha.nonEmpty && sha.exists(_ != '0')
+
+  /** GitHub Actions expression syntax collides with Scala interpolation; build it instead. */
+  private def gha(expr: String): String = "$" + s"{{ $expr }}"
+
   private val reportStepId = "report"
 
   /** Publishes the affected set for other jobs to gate on. */
@@ -158,6 +173,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
       List("lucumaAffectedReport"),
       name = Some("Compute affected projects"),
       id = Some(reportStepId),
+      env = Map(PushBaseEnv -> gha("github.event.before")),
       preamble = false
     )
 
