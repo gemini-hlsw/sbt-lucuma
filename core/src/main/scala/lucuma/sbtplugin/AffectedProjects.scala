@@ -130,4 +130,9 @@ private[sbtplugin] object AffectedProjects {
         val closure = s.flatMap(id => dependents.getOrElse(id, Set.empty[String]) + id)
         Plan(all = false, None, closure.intersect(testable).toSeq.sorted)
     }
+
+  def toJsonArray(values: Seq[String]): String =
+    values
+      .map(v => "\"" + v.replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
+      .mkString("[", ",", "]")
 }

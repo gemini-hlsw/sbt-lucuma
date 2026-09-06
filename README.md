@@ -145,6 +145,33 @@ not `core/src/sbt-test/foo/build.sbt`.
 | `lucumaAffectedProjects` | The projects to test. |
 | `lucumaTestAffected` | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
 
+### Skipping other jobs
+
+Tests aren't the only thing a PR can make pointless. Building and linking an app, publishing an
+image, checking a bundle size — none of that needs to happen if the diff can't reach the projects
+it's built from.
+
+Name the projects a job consumes and it's skipped when none of them are affected:
+
+```scala
+ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
+  WorkflowJob("explore-deploy", "Build and deploy Explore", steps, cond = someCond),
+  "explore_app"
+)
+```
+
+`lucumaAffectedJob` adds the dependency and ANDs the condition onto whatever the job already had.
+For a single step, or to build the expression yourself, use `lucumaAffectedCond("explore_app")` and
+add `lucumaAffectedJobId` to the job's `needs`.
+
+Both read `needs.affected.outputs.projects`, published by a generated `affected` job. That job
+costs an sbt boot, so it's only generated once something depends on it — adding
+`lucumaAffectedJobId` to a `needs` list is what brings it into being.
+
+| Task | Description |
+| --- | --- |
+| `lucumaAffectedReport` | Log the affected projects, and write `projects` and `all` to `GITHUB_OUTPUT` under Actions. |
+
 Try it locally with `LUCUMA_AFFECTED_BASE=origin/main sbt lucumaAffectedProjects`.
 
 > [!WARNING]

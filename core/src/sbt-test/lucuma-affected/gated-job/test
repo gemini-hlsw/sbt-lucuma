@@ -1,0 +1,5 @@
+> checkGate
+
+# the affected job only exists because something needs it
+> set ThisBuild / githubWorkflowAddedJobs := Nil
+> checkNoJob
