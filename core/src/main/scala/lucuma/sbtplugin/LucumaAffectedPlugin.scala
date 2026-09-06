@@ -53,6 +53,39 @@ object LucumaAffectedPlugin extends AutoPlugin {
     lazy val lucumaAffectedProjects = taskKey[Seq[String]](
       "Projects whose tests the current diff can break"
     )
+
+    lazy val lucumaAffectedReport = taskKey[Unit](
+      "Log the affected projects, and write them to GITHUB_OUTPUT when running in Actions"
+    )
+
+    /**
+     * Id of the generated job that publishes the affected set. It is only generated when some other
+     * job depends on it, so adding it to a job's `needs` is what brings it into being.
+     */
+    val lucumaAffectedJobId: String = "affected"
+
+    /**
+     * Condition that holds when any of the given projects is affected. The job carrying it must
+     * also list `lucumaAffectedJobId` in its `needs`; [[lucumaAffectedJob]] does both.
+     *
+     * Takes the projects themselves rather than their ids, so a rename is a refactor and a typo is
+     * a compile error. For a crossProject, name the platform you mean: `schemas_lib.js`.
+     */
+    def lucumaAffectedCond(project: Project, more: Project*): String =
+      (project +: more)
+        .map(p => s"contains(fromJSON(needs.$lucumaAffectedJobId.outputs.projects), '${p.id}')")
+        .mkString("(", " || ", ")")
+
+    /**
+     * Skips `job` entirely unless one of the given projects is affected -- for work that a diff can
+     * only break through those projects, like building or deploying an application.
+     */
+    def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
+      val cond = lucumaAffectedCond(project, more: _*)
+      job
+        .withNeeds((job.needs :+ lucumaAffectedJobId).distinct)
+        .withCond(Some(job.cond.fold(cond)(existing => s"($existing) && $cond")))
+    }
   }
 
   import autoImport.*
@@ -79,21 +112,70 @@ object LucumaAffectedPlugin extends AutoPlugin {
           changedFiles((ThisBuild / baseDirectory).value, base, log)
       }
     },
-    lucumaAffectedProjects     := {
-      val log    = streams.value.log
-      val result = plan(state.value, lucumaAffectedChangedFiles.value, log)
-      result.reason.foreach(r => log.info(s"[affected] running everything: $r"))
-      result.projects
+    lucumaAffectedProjects     := planTask.value.projects,
+    lucumaAffectedReport       := {
+      val result = planTask.value
+      streams.value.log.info(s"[affected] projects: ${result.projects.mkString(", ")}")
+
+      sys.env.get("GITHUB_OUTPUT").filter(_.nonEmpty).foreach { out =>
+        IO.append(
+          file(out),
+          List(
+            s"all=${result.all}",
+            s"projects=${AffectedProjects.toJsonArray(result.projects)}"
+          ).mkString("", "\n", "\n")
+        )
+      }
     },
     commands += testAffected,
     // Rewrite the generated job rather than `githubWorkflowBuild`, because TypelevelCiJSPlugin
     // finds its own insertion point by matching `commands == List("test")`. Renaming the command
     // any earlier makes that match fail and silently drops the scalaJSLink step.
     githubWorkflowGeneratedCI  := {
-      val jobs = githubWorkflowGeneratedCI.value
-      if (lucumaAffectedTests.value) jobs.map(narrowTestStep) else jobs
+      val jobs     = githubWorkflowGeneratedCI.value
+      val narrowed = if (lucumaAffectedTests.value) jobs.map(narrowTestStep) else jobs
+      // The extra job costs an sbt boot, so only generate it once something gates on it -- and
+      // never a second time, which would be a duplicate job id and so invalid YAML.
+      val wanted   = narrowed.exists(_.needs.contains(lucumaAffectedJobId))
+      val exists   = narrowed.exists(_.id == lucumaAffectedJobId)
+      if (wanted && !exists) narrowed :+ affectedJob.value else narrowed
     }
   )
+
+  /** The one place the plan is computed; every task and the command go through it. */
+  private lazy val planTask: Def.Initialize[Task[AffectedProjects.Plan]] = Def.task {
+    val log    = streams.value.log
+    val result = plan(state.value, lucumaAffectedChangedFiles.value, log)
+    result.reason.foreach(r => log.info(s"[affected] running everything: $r"))
+    result
+  }
+
+  private val reportStepId = "report"
+
+  /** Publishes the affected set for other jobs to gate on. */
+  private lazy val affectedJob: Def.Initialize[WorkflowJob] = Def.setting {
+    val report = WorkflowStep.Sbt(
+      List("lucumaAffectedReport"),
+      name = Some("Compute affected projects"),
+      id = Some(reportStepId),
+      preamble = false
+    )
+
+    WorkflowJob(
+      id = lucumaAffectedJobId,
+      name = "Affected Projects",
+      steps = githubWorkflowJobSetup.value.toList :+ report,
+      sbtStepPreamble = Nil,
+      oses = githubWorkflowOSes.value.toList.take(1),
+      scalas = githubWorkflowScalaVersions.value.toList.take(1),
+      javas = githubWorkflowJavaVersions.value.toList.take(1),
+      outputs = Map(
+        "all"      -> s"steps.$reportStepId.outputs.all",
+        "projects" -> s"steps.$reportStepId.outputs.projects"
+      ),
+      timeoutMinutes = Some(20)
+    )
+  }
 
   private def narrowTestStep(job: WorkflowJob): WorkflowJob =
     if (job.id != "build") job

@@ -169,6 +169,18 @@ class AffectedProjectsSuite extends FunSuite {
     }
   }
 
+  test("json escaping survives anything a value could contain") {
+    assertEquals(toJsonArray(Seq("a", "b")), """["a","b"]""")
+    assertEquals(toJsonArray(Seq.empty[String]), "[]")
+    assertEquals(toJsonArray(Seq("""a"b""")), """["a\"b"]""")
+    assertEquals(toJsonArray(Seq("""a\b""")), """["a\\b"]""")
+    // a newline here would break GITHUB_OUTPUT's key=value framing, not just the JSON
+    assertEquals(toJsonArray(Seq("a\nb")), """["a\nb"]""")
+    assertEquals(toJsonArray(Seq("a\tb")), """["a\tb"]""")
+    // split so the compiler doesn't turn the expected text back into a real control character
+    assertEquals(toJsonArray(Seq("a\u0001b")), "[\"a" + "\\" + "u0001b\"]")
+  }
+
   test("touches is symmetric in the useful direction only") {
     assert(touches("a/b/c.scala", "a/b"))
     assert(touches("a/x.txt", "a/b")) // dir below the file's parent
