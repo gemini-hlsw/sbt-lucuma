@@ -44,6 +44,14 @@ ThisBuild / checkGate := {
   if (bundle.cond != expected) sys.error(s"expected $expected but got ${bundle.cond}")
 }
 
+lazy val checkNoDuplicate = taskKey[Unit]("A hand-written affected job is not doubled")
+
+ThisBuild / checkNoDuplicate := {
+  val ids = (ThisBuild / githubWorkflowGeneratedCI).value.map(_.id)
+  if (ids.count(_ == "affected") != 1)
+    sys.error(s"duplicate or missing `affected` job: ${ids.mkString(", ")}")
+}
+
 ThisBuild / checkNoJob := {
   val all = (ThisBuild / githubWorkflowGeneratedCI).value
   if (all.exists(_.id == "affected"))

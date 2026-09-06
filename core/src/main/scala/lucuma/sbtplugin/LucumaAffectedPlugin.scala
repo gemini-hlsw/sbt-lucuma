@@ -134,9 +134,11 @@ object LucumaAffectedPlugin extends AutoPlugin {
     githubWorkflowGeneratedCI  := {
       val jobs     = githubWorkflowGeneratedCI.value
       val narrowed = if (lucumaAffectedTests.value) jobs.map(narrowTestStep) else jobs
-      // the extra job costs an sbt boot, so only generate it once something gates on it
-      if (narrowed.exists(_.needs.contains(lucumaAffectedJobId))) narrowed :+ affectedJob.value
-      else narrowed
+      // The extra job costs an sbt boot, so only generate it once something gates on it -- and
+      // never a second time, which would be a duplicate job id and so invalid YAML.
+      val wanted   = narrowed.exists(_.needs.contains(lucumaAffectedJobId))
+      val exists   = narrowed.exists(_.id == lucumaAffectedJobId)
+      if (wanted && !exists) narrowed :+ affectedJob.value else narrowed
     }
   )
 

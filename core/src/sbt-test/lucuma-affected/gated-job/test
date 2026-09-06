@@ -1,5 +1,9 @@
 > checkGate
 
+# a build supplying its own `affected` job doesn't get a second one
+> set ThisBuild / githubWorkflowAddedJobs += WorkflowJob("affected", "Affected Projects", List(WorkflowStep.Run(List("echo mine"))))
+> checkNoDuplicate
+
 # the affected job only exists because something needs it
 > set ThisBuild / githubWorkflowAddedJobs := Nil
 > checkNoJob

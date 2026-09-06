@@ -131,8 +131,27 @@ private[sbtplugin] object AffectedProjects {
         Plan(all = false, None, closure.intersect(testable).toSeq.sorted)
     }
 
+  /**
+   * Project ids can't contain anything exotic, but this feeds `GITHUB_OUTPUT`, where a stray
+   * newline would corrupt the whole file rather than just the value. So escape properly.
+   */
   def toJsonArray(values: Seq[String]): String =
-    values
-      .map(v => "\"" + v.replace("\\", "\\\\").replace("\"", "\\\"") + "\"")
-      .mkString("[", ",", "]")
+    values.map(quote).mkString("[", ",", "]")
+
+  private def quote(value: String): String = {
+    val out = new StringBuilder("\"")
+    value.foreach {
+      case '"'          => out ++= "\\\""
+      case '\\'         => out ++= "\\\\"
+      case '\n'         => out ++= "\\n"
+      case '\r'         => out ++= "\\r"
+      case '\t'         => out ++= "\\t"
+      case '\b'         => out ++= "\\b"
+      case '\f'         => out ++= "\\f"
+      case c if c < ' ' => out ++= "\\u%04x".format(c.toInt)
+      case c            => out += c
+    }
+    out += '"'
+    out.result()
+  }
 }
