@@ -213,7 +213,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
       })
 
   /**
-   * `lucumaTestAffected` -- runs `Test/test` on the affected projects, restricted to the current
+   * `lucumaTestAffected` -- runs `test` on the affected projects, restricted to the current
    * project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
    *
    * The project list comes from the `lucumaAffectedProjects` task rather than being recomputed, so
@@ -231,7 +231,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
         next
       } else {
         log.info(s"[affected] testing: ${scoped.mkString(", ")}")
-        scoped.map(id => s"$id/Test/test").mkString("all ", " ", "") :: next
+        // `test`, not `Test/test`: it delegates to the same task, but it is the key a project
+        // overrides with `test := {}` to opt out, and `Test/test` would walk straight past that
+        scoped.map(id => s"$id/test").mkString("all ", " ", "") :: next
       }
     }
 
