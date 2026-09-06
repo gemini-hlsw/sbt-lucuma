@@ -1,8 +1,16 @@
 lazy val a = project.in(file("a"))
+lazy val b = project.in(file("b"))
 
 ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
   WorkflowJob("deploy", "Deploy", List(WorkflowStep.Run(List("echo deploying"))), cond = Some("github.ref == 'refs/heads/main'")),
-  "a"
+  a
+)
+
+// several projects: any one of them is enough
+ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
+  WorkflowJob("bundle", "Bundle", List(WorkflowStep.Run(List("echo bundling")))),
+  a,
+  b
 )
 
 lazy val checkGate    = taskKey[Unit]("The deploy job is gated and the affected job exists")
@@ -27,6 +35,13 @@ ThisBuild / checkGate := {
   if (!cond.contains("refs/heads/main")) sys.error(s"lost the original cond: $cond")
   if (!cond.contains("contains(fromJSON(needs.affected.outputs.projects), 'a')"))
     sys.error(s"not gated on `a`: $cond")
+
+  val bundle = all.find(_.id == "bundle").getOrElse(sys.error("no `bundle` job"))
+  val expected = Some(
+    "(contains(fromJSON(needs.affected.outputs.projects), 'a')" +
+      " || contains(fromJSON(needs.affected.outputs.projects), 'b'))"
+  )
+  if (bundle.cond != expected) sys.error(s"expected $expected but got ${bundle.cond}")
 }
 
 ThisBuild / checkNoJob := {

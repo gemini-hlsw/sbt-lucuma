@@ -156,13 +156,19 @@ Name the projects a job consumes and it's skipped when none of them are affected
 ```scala
 ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
   WorkflowJob("explore-deploy", "Build and deploy Explore", steps, cond = someCond),
-  "explore_app"
+  explore_app
 )
 ```
 
+It takes the projects themselves, not their ids, so a rename is a refactor and a typo is a compile
+error. For a crossProject, name the platform you mean: `schemas_lib.js`.
+
 `lucumaAffectedJob` adds the dependency and ANDs the condition onto whatever the job already had.
-For a single step, or to build the expression yourself, use `lucumaAffectedCond("explore_app")` and
+For a single step, or to build the expression yourself, use `lucumaAffectedCond(explore_app)` and
 add `lucumaAffectedJobId` to the job's `needs`.
+
+Naming one project covers everything upstream of it, since the condition reads the reverse
+dependency closure: gating on `explore_app` also fires for `ui_lib` and `schemas_lib` changes.
 
 Both read `needs.affected.outputs.projects`, published by a generated `affected` job. That job
 costs an sbt boot, so it's only generated once something depends on it — adding

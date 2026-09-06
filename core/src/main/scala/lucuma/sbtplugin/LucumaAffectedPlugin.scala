@@ -65,20 +65,23 @@ object LucumaAffectedPlugin extends AutoPlugin {
     val lucumaAffectedJobId: String = "affected"
 
     /**
-     * Condition that holds when any of `projects` is affected. The job carrying it must also list
-     * `lucumaAffectedJobId` in its `needs`; [[lucumaAffectedJob]] does both.
+     * Condition that holds when any of the given projects is affected. The job carrying it must
+     * also list `lucumaAffectedJobId` in its `needs`; [[lucumaAffectedJob]] does both.
+     *
+     * Takes the projects themselves rather than their ids, so a rename is a refactor and a typo is
+     * a compile error. For a crossProject, name the platform you mean: `schemas_lib.js`.
      */
-    def lucumaAffectedCond(projects: String*): String =
-      projects
-        .map(p => s"contains(fromJSON(needs.$lucumaAffectedJobId.outputs.projects), '$p')")
+    def lucumaAffectedCond(project: Project, more: Project*): String =
+      (project +: more)
+        .map(p => s"contains(fromJSON(needs.$lucumaAffectedJobId.outputs.projects), '${p.id}')")
         .mkString("(", " || ", ")")
 
     /**
-     * Skips `job` entirely unless one of `projects` is affected -- for work that a diff can only
-     * break through those projects, like building or deploying an application.
+     * Skips `job` entirely unless one of the given projects is affected -- for work that a diff can
+     * only break through those projects, like building or deploying an application.
      */
-    def lucumaAffectedJob(job: WorkflowJob, projects: String*): WorkflowJob = {
-      val cond = lucumaAffectedCond(projects: _*)
+    def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
+      val cond = lucumaAffectedCond(project, more: _*)
       job
         .withNeeds((job.needs :+ lucumaAffectedJobId).distinct)
         .withCond(Some(job.cond.fold(cond)(existing => s"($existing) && $cond")))
