@@ -64,11 +64,11 @@ object LucumaSlackPlugin extends AutoPlugin {
   private val workflowFile = "ci-failure-slack.yml"
 
   override val buildSettings: Seq[Setting[_]] = Seq(
-    lucumaSlackNotify           := true,
-    lucumaSlackNotifyWorkflows  := Seq("Continuous Integration"),
-    lucumaSlackNotifyBranch     := "main",
-    lucumaSlackWebhookSecret    := "GPP_SLACK_WEBHOOK_URL",
-    lucumaSlackNotifyGenerate   := {
+    lucumaSlackNotify          := true,
+    lucumaSlackNotifyWorkflows := Seq("Continuous Integration"),
+    lucumaSlackNotifyBranch    := "main",
+    lucumaSlackWebhookSecret   := "GPP_SLACK_WEBHOOK_URL",
+    lucumaSlackNotifyGenerate  := {
       val target   = workflowPath.value
       val expected = contents.value
       val log      = streams.value.log
@@ -80,7 +80,7 @@ object LucumaSlackPlugin extends AutoPlugin {
         log.info(s"Deleted $target (lucumaSlackNotify is false)")
       }
     },
-    lucumaSlackNotifyCheck      := {
+    lucumaSlackNotifyCheck     := {
       val target   = workflowPath.value
       val expected = contents.value
       if (lucumaSlackNotify.value) {
@@ -97,7 +97,7 @@ object LucumaSlackPlugin extends AutoPlugin {
         sys.error(s"$target exists but lucumaSlackNotify is false; run lucumaSlackNotifyGenerate")
     },
     // checked alongside the other generated configs, so drift fails the build
-    githubWorkflowBuild         := githubWorkflowBuild.value.map {
+    githubWorkflowBuild        := githubWorkflowBuild.value.map {
       case step: WorkflowStep.Sbt
           if lucumaSlackNotify.value && step.name.exists(_.contains("Check headers")) =>
         step.withCommands(step.commands :+ "lucumaSlackNotifyCheck")
