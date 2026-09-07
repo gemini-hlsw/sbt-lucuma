@@ -1,0 +1,9 @@
+# Valid YAML, wrong content. It has to parse: in CI the scripted sbt inherits GITHUB_ACTIONS, so
+# GitHubActionsPlugin reads everything in .github/workflows during settings evaluation.
+name: Tampered
+on: workflow_dispatch
+jobs:
+  noop:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo hi
