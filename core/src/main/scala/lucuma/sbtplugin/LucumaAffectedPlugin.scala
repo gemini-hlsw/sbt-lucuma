@@ -173,6 +173,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
       List("lucumaAffectedReport"),
       name = Some("Compute affected projects"),
       id = Some(reportStepId),
+      // Only here, never workflow-wide: see PushBaseEnv. Hoisting this would narrow the tests on
+      // `main` too, and those are the backstop.
       env = Map(PushBaseEnv -> gha("github.event.before")),
       preamble = false
     )

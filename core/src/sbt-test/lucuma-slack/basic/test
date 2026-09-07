@@ -1,0 +1,14 @@
+> lucumaSlackNotifyGenerate
+> checkGenerated
+> checkInCi
+> lucumaSlackNotifyCheck
+
+# editing the file by hand is caught
+$ copy-file build.sbt .github/workflows/ci-failure-slack.yml
+-> lucumaSlackNotifyCheck
+
+# turning it off removes the file
+> set ThisBuild / lucumaSlackNotify := false
+> lucumaSlackNotifyGenerate
+> lucumaSlackNotifyCheck
+$ absent .github/workflows/ci-failure-slack.yml
