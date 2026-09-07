@@ -29,7 +29,7 @@ and `docker` depend on `core`.
 
 | Dir | Artifact | Notable contents |
 | --- | --- | --- |
-| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`, `LucumaAffectedPlugin` (pure logic in `AffectedProjects`). Unit tests in `core/src/test`, scripted tests in `core/src/sbt-test`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
+| `core/` | `sbt-lucuma` | `LucumaPlugin` (umbrella), `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin`, `LucumaAffectedPlugin` (pure logic in `AffectedProjects`), `LucumaSlackPlugin`. Unit tests in `core/src/test`, scripted tests in `core/src/sbt-test`. Bundled resources: `scalafmt-common.conf`, `scalafix-common.conf`. |
 | `lib/` | `sbt-lucuma-lib` | `LucumaLibPlugin` (published libraries; adds MiMa). |
 | `app/` | `sbt-lucuma-app` | `LucumaAppPlugin` (applications; date+git version, no MiMa). |
 | `css/` | `sbt-lucuma-css` | `LucumaCssPlugin` (opt-in CSS bundling). Has scripted tests. |

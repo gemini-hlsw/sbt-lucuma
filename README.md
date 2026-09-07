@@ -191,6 +191,42 @@ Try it locally with `LUCUMA_AFFECTED_BASE=origin/main sbt lucumaAffectedProjects
 > dependencies. If those live outside the project that uses them, add them to
 > `lucumaAffectedAlwaysPaths`.
 
+### `LucumaSlackPlugin`
+
+**Activation:** Automatic (requires `LucumaPlugin`). Disable with
+`ThisBuild / lucumaSlackNotify := false`.
+
+Posts to Slack when a workflow fails on the default branch.
+
+GitHub only notifies whoever triggered a run, and merges are pushed by a bot, so a red `main`
+reaches nobody. This watches whole workflows rather than instrumenting jobs, so a job added later
+is covered without touching anything.
+
+`lucumaSlackNotifyGenerate` writes `.github/workflows/ci-failure-slack.yml` —
+`githubWorkflowGenerate` only ever writes `ci.yml` and `clean.yml`, so this has its own task,
+checked in CI the way the shared scalafmt and scalafix configs are. `prePR` and Steward regenerate
+it. Setting `lucumaSlackNotify := false` and regenerating deletes the file.
+
+You need the webhook as a repository or organization secret. Get one from a Slack app under
+*Incoming Webhooks*; it is bound to a single channel. Without it the workflow logs a warning and
+exits cleanly, so an unconfigured repo doesn't get a second failure on top of the one it was
+reporting.
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `lucumaSlackNotify` | `true` | Set to `false` to not generate the workflow. |
+| `lucumaSlackNotifyWorkflows` | `Seq("Continuous Integration")` | Workflows to watch. Add a nightly one here: a scheduled run otherwise notifies only whoever last edited its cron. |
+| `lucumaSlackNotifyBranch` | `"main"` | Branch whose failures are reported. |
+| `lucumaSlackWebhookSecret` | `"GPP_SLACK_WEBHOOK_URL"` | Name of the Actions secret holding the webhook URL. |
+
+| Task | Description |
+| --- | --- |
+| `lucumaSlackNotifyGenerate` | Write the workflow, or delete it when the feature is off. |
+| `lucumaSlackNotifyCheck` | Fail if it is missing, edited by hand, or out of date. |
+
+The message names the failed jobs, which needs one API call. That call is `continue-on-error`, so a
+flaky lookup costs you the job names rather than the whole notification.
+
 ---
 
 ## `sbt-lucuma-lib`
