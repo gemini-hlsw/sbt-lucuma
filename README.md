@@ -167,6 +167,18 @@ error. For a crossProject, name the platform you mean: `schemas_lib.js`.
 For a single step, or to build the expression yourself, use `lucumaAffectedCond(explore_app)` and
 add `lucumaAffectedJobId` to the job's `needs`.
 
+It gates every **step** rather than the job itself. That costs a runner start, about fifteen
+seconds, and avoids a trap: GitHub doesn't expand `strategy.matrix` for a job skipped by a
+job-level condition, so such a job reports one check run named `Build and deploy Explore` instead
+of one per matrix combination, `Build and deploy Explore (ubuntu-22.04, temurin@25)`. Branch
+protection requiring the matrixed name then sits at *"Expected — Waiting for status to be
+reported"* forever. sbt can't see which checks are required, so the plugin takes the option that
+can't break.
+
+A green job that skipped everything is otherwise indistinguishable from one that did the work, so
+the first step announces the skip as a `::notice::` annotation — visible on the run summary without
+opening logs. It fires only when nothing was affected.
+
 Naming one project covers everything upstream of it, since the condition reads the reverse
 dependency closure: gating on `explore_app` also fires for `ui_lib` and `schemas_lib` changes.
 

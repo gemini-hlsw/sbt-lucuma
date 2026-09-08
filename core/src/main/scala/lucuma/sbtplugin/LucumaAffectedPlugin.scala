@@ -77,14 +77,36 @@ object LucumaAffectedPlugin extends AutoPlugin {
         .mkString("(", " || ", ")")
 
     /**
-     * Skips `job` entirely unless one of the given projects is affected -- for work that a diff can
+     * Skips the work in `job` unless one of the given projects is affected -- for work a diff can
      * only break through those projects, like building or deploying an application.
+     *
+     * Gates every step rather than the job, which costs a runner start and buys safety: GitHub does
+     * not expand `strategy.matrix` for a job skipped by a job-level condition, so such a job
+     * reports a single check run under the bare job name instead of one per matrix combination.
+     * Branch protection requiring the matrixed name then waits for a report that never comes. The
+     * plugin cannot see which checks are required, so it takes the option that cannot break.
      */
     def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
-      val cond = lucumaAffectedCond(project, more: _*)
+      val projects = (project +: more).map(_.id).mkString(", ")
+      val cond     = lucumaAffectedCond(project, more: _*)
+
+      // A job whose every step was skipped still reports green, which is indistinguishable from
+      // one that did the work. Say so, as an annotation, so the run summary shows it.
+      val announce = WorkflowStep.Run(
+        List(
+          s"""echo "::notice title=Nothing to do::$projects not affected by this diff; every step skipped""""
+        ),
+        name = Some("Report that nothing was affected"),
+        cond = Some(s"!$cond")
+      )
+
       job
         .withNeeds((job.needs :+ lucumaAffectedJobId).distinct)
-        .withCond(Some(job.cond.fold(cond)(existing => s"($existing) && $cond")))
+        .withSteps(
+          announce :: job.steps.map(step =>
+            step.withCond(Some(step.cond.fold(cond)(existing => s"($existing) && $cond")))
+          )
+        )
     }
   }
 
