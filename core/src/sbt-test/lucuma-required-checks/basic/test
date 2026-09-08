@@ -1,0 +1,10 @@
+> checkGate
+
+# the gate can be turned off
+> set ThisBuild / lucumaRequiredChecks := false
+> checkOff
+
+# an unknown job id fails immediately, rather than silently dropping a requirement. Last: the
+# failed `set` leaves the session holding a setting that can't be evaluated.
+> set ThisBuild / lucumaRequiredChecks := true
+-> set ThisBuild / lucumaRequiredCheckJobs += "nope"

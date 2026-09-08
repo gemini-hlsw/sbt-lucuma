@@ -9,14 +9,14 @@ The plugins are split across several published artifacts. Most projects only nee
 applications) — both depend on the core `sbt-lucuma` artifact and pull in its plugins
 transitively. The CSS, Docker, and jsdom artifacts are added as needed.
 
-| Artifact | Add with | Provides |
-| --- | --- | --- |
-| `sbt-lucuma` | _(transitive — pulled by `-lib`/`-app`)_ | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin` |
-| `sbt-lucuma-lib` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-lib" % V)` | `LucumaLibPlugin` (+ core) |
-| `sbt-lucuma-app` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % V)` | `LucumaAppPlugin` (+ core) |
-| `sbt-lucuma-css` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % V)` | `LucumaCssPlugin` |
-| `sbt-lucuma-docker` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-docker" % V)` | `LucumaDockerPlugin` (+ core) |
-| `lucuma-jsdom` | `libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % V` (in `project/`) | `LucumaJSDOMNodeJSEnv` |
+| Artifact            | Add with                                                                    | Provides                                                                                                       |
+| ------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin` |
+| `sbt-lucuma-lib`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-lib" % V)`                         | `LucumaLibPlugin` (+ core)                                                                                     |
+| `sbt-lucuma-app`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % V)`                         | `LucumaAppPlugin` (+ core)                                                                                     |
+| `sbt-lucuma-css`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % V)`                         | `LucumaCssPlugin`                                                                                              |
+| `sbt-lucuma-docker` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-docker" % V)`                      | `LucumaDockerPlugin` (+ core)                                                                                  |
+| `lucuma-jsdom`      | `libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % V` (in `project/`) | `LucumaJSDOMNodeJSEnv`                                                                                         |
 
 In the tables below, **Activation** is either:
 
@@ -48,8 +48,8 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
 
 Selected `autoImport`:
 
-| Key | Description |
-| --- | --- |
+| Key                                                                                                                                                                                                                                                                                | Description                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `lucumaGlobalSettings`, `lucumaScalaVersionSettings`, `lucumaScalacSettings`, `lucumaScalacProjectSettings`, `lucumaPublishSettings`, `lucumaCiSettings`, `lucumaHeaderSettings`, `lucumaGitSettings`, `lucumaDocSettings`, `lucumaDockerComposeSettings`, `lucumaStewardSettings` | Reusable setting sequences, exposed so individual projects can opt in/out of pieces. |
 
 ### `LucumaScalaJSPlugin`
@@ -72,10 +72,10 @@ projects** (i.e. the JS side of a crossProject).
 Manages a shared scalafmt config (`.scalafmt-common.conf`) generated from a resource bundled
 in the plugin.
 
-| Task | Description |
-| --- | --- |
-| `lucumaScalafmtGenerate` | Write the common scalafmt config to the build root. |
-| `lucumaScalafmtCheck` | Fail if the on-disk config differs from the bundled one. |
+| Task                     | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `lucumaScalafmtGenerate` | Write the common scalafmt config to the build root.      |
+| `lucumaScalafmtCheck`    | Fail if the on-disk config differs from the bundled one. |
 
 ### `LucumaScalafixPlugin`
 
@@ -83,10 +83,10 @@ in the plugin.
 
 The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 
-| Task | Description |
-| --- | --- |
-| `lucumaScalafixGenerate` | Write the common scalafix config to the build root. |
-| `lucumaScalafixCheck` | Fail if the on-disk config differs from the bundled one. |
+| Task                     | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `lucumaScalafixGenerate` | Write the common scalafix config to the build root.      |
+| `lucumaScalafixCheck`    | Fail if the on-disk config differs from the bundled one. |
 
 ### `LucumaBundleMonPlugin`
 
@@ -129,21 +129,21 @@ ThisBuild / lucumaAffectedIgnorePaths ++= Seq("**vite.config.*", "**hasura/**")
 The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffected` instead of
 `test`. No project names appear in it, so adding or renaming projects needs no regeneration.
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `lucumaAffectedTests` | `true` | Set to `false` to always run the full suite. |
-| `lucumaAffectedAlwaysPaths` | see above | Globs that trigger a full run. |
-| `lucumaAffectedIgnorePaths` | see above | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
-| `lucumaAffectedBaseRef` | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF`, else the previous commit on a push | What to diff against. `None` runs everything. |
+| Setting                     | Default                                                                                     | Description                                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `lucumaAffectedTests`       | `true`                                                                                      | Set to `false` to always run the full suite.                                                                       |
+| `lucumaAffectedAlwaysPaths` | see above                                                                                   | Globs that trigger a full run.                                                                                     |
+| `lucumaAffectedIgnorePaths` | see above                                                                                   | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
+| `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF`, else the previous commit on a push | What to diff against. `None` runs everything.                                                                      |
 
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
 not `core/src/sbt-test/foo/build.sbt`.
 
-| Task | Description |
-| --- | --- |
-| `lucumaAffectedChangedFiles` | Changed files, including uncommitted and untracked ones. `None` if no diff was possible. |
-| `lucumaAffectedProjects` | The projects to test. |
-| `lucumaTestAffected` | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
+| Task                         | Description                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `lucumaAffectedChangedFiles` | Changed files, including uncommitted and untracked ones. `None` if no diff was possible.                    |
+| `lucumaAffectedProjects`     | The projects to test.                                                                                       |
+| `lucumaTestAffected`         | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
 
 ### Skipping other jobs
 
@@ -180,8 +180,8 @@ does **not** do this: `lucumaTestAffected` sees no base ref on a push and runs t
 is the backstop for everything the dependency graph can't see. A first push or a force-push gives no
 usable commit, and then both fall back to running everything.
 
-| Task | Description |
-| --- | --- |
+| Task                   | Description                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
 | `lucumaAffectedReport` | Log the affected projects, and write `projects` and `all` to `GITHUB_OUTPUT` under Actions. |
 
 Try it locally with `LUCUMA_AFFECTED_BASE=origin/main sbt lucumaAffectedProjects`.
@@ -208,24 +208,66 @@ checked in CI the way the shared scalafmt and scalafix configs are. `prePR` and 
 it. Setting `lucumaSlackNotify := false` and regenerating deletes the file.
 
 You need the webhook as a repository or organization secret. Get one from a Slack app under
-*Incoming Webhooks*; it is bound to a single channel. Without it the workflow logs a warning and
+_Incoming Webhooks_; it is bound to a single channel. Without it the workflow logs a warning and
 exits cleanly, so an unconfigured repo doesn't get a second failure on top of the one it was
 reporting.
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `lucumaSlackNotify` | `true` | Set to `false` to not generate the workflow. |
+| Setting                      | Default                         | Description                                                                                                       |
+| ---------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `lucumaSlackNotify`          | `true`                          | Set to `false` to not generate the workflow.                                                                      |
 | `lucumaSlackNotifyWorkflows` | `Seq("Continuous Integration")` | Workflows to watch. Add a nightly one here: a scheduled run otherwise notifies only whoever last edited its cron. |
-| `lucumaSlackNotifyBranch` | `"main"` | Branch whose failures are reported. |
-| `lucumaSlackWebhookSecret` | `"GPP_SLACK_WEBHOOK_URL"` | Name of the Actions secret holding the webhook URL. |
+| `lucumaSlackNotifyBranch`    | `"main"`                        | Branch whose failures are reported.                                                                               |
+| `lucumaSlackWebhookSecret`   | `"GPP_SLACK_WEBHOOK_URL"`       | Name of the Actions secret holding the webhook URL.                                                               |
 
-| Task | Description |
-| --- | --- |
+| Task                        | Description                                               |
+| --------------------------- | --------------------------------------------------------- |
 | `lucumaSlackNotifyGenerate` | Write the workflow, or delete it when the feature is off. |
-| `lucumaSlackNotifyCheck` | Fail if it is missing, edited by hand, or out of date. |
+| `lucumaSlackNotifyCheck`    | Fail if it is missing, edited by hand, or out of date.    |
 
 The message names the failed jobs, which needs one API call. That call is `continue-on-error`, so a
 flaky lookup costs you the job names rather than the whole notification.
+
+### `LucumaRequiredChecksPlugin`
+
+**Activation:** Automatic (requires `LucumaPlugin`). Disable with
+`ThisBuild / lucumaRequiredChecks := false`.
+
+Generates one CI job to require in branch protection, instead of requiring one entry per test shard, JDK and Scala version.
+
+GitHub matches a required check by its literal name, built from the job name plus its matrix values:
+`Test (ubuntu-22.04, 3, temurin@25, 0)`. Listing those is fragile twice over. Change a JDK, a Scala
+version, a shard count or a job name and the entry silently stops matching. And a job skipped by a job-level `if:` never expands its matrix, so the requirement never matches.
+
+The generated job depends on jobs by **id** through `needs`, which carry none of those values.
+`needs: [build]` waits for every combination of `build` and fails if any of them failed:
+
+```scala
+ThisBuild / lucumaRequiredCheckJobs := Seq("build", "checks")
+```
+
+Each id is checked against the generated workflow, so a typo or a renamed job fails the build
+instead of quietly dropping a requirement.
+
+The check to require is the job name plus the one matrix value GitHub appends:
+
+```
+REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED (ubuntu-latest)
+```
+
+| Setting                   | Default        | Description                                                    |
+| ------------------------- | -------------- | -------------------------------------------------------------- |
+| `lucumaRequiredChecks`    | `true`         | Set to `false` to not generate the job.                        |
+| `lucumaRequiredCheckJobs` | `Seq("build")` | Job ids to require. Each must exist in the generated workflow. |
+| `lucumaRequiredChecksJobName` | `"REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED"` | Display name of the job. Keep it the same across repos so there is one string to configure everywhere. |
+
+The job runs `if: always()`, so a skipped dependency can't skip it and leave the check unreported.
+It fails on `failure` or `cancelled` and accepts `skipped`: a job the diff made pointless is fine.
+It runs on `ubuntu-latest` because sbt-typelevel puts the OS in the check name, and that label never
+changes while dated images get retired.
+
+It's generated by default so the name shows up in GitHub's picker from the first push; it does
+nothing until branch protection points at it. To adopt: bump, `githubWorkflowGenerate`, push once,
+then replace the required-checks list with the single name above.
 
 ---
 
@@ -264,10 +306,10 @@ Collects CSS assets (from both the classpath and dependency jars) into the targe
 as part of the linking step, so stylesheets shipped inside lucuma libraries end up alongside
 the linked JS.
 
-| Key | Description |
-| --- | --- |
-| `lucumaCss` (task) | Copy CSS into `target/lucuma-css`; hooked into `fastLinkJS` / `fullLinkJS`. |
-| `lucumaCssExts` (setting) | File extensions treated as CSS (default `css`, `scss`, `saas`). |
+| Key                       | Description                                                                 |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `lucumaCss` (task)        | Copy CSS into `target/lucuma-css`; hooked into `fastLinkJS` / `fullLinkJS`. |
+| `lucumaCssExts` (setting) | File extensions treated as CSS (default `css`, `scss`, `saas`).             |
 
 ---
 
@@ -285,14 +327,14 @@ Opinionated Docker packaging (via sbt-native-packager) for lucuma server applica
 - cgroups-aware heap sizing (via a bundled `docker-set-memory.sh`) and optional Heroku Java
   metrics agent (downloaded at build time).
 
-| Key | Default | Description |
-| --- | --- | --- |
-| `lucumaDockerDefaultMaxHeap` | `512` | Max heap (MB) when cgroups don't report a limit. |
-| `lucumaDockerMinHeap` | `256` | Minimum heap (MB). |
-| `lucumaDockerHeapPercentMax` | `80` | % of memory for heap when cgroups report `max`. |
-| `lucumaDockerHeapSubtract` | `0` | MB to subtract from the memory limit when sizing heap. |
-| `lucumaDockerOpenDebugPorts` | `false` | Open JMX / JDWP debug ports in the start script. |
-| `lucumaDockerUseHerokuAgent` | `true` | Bundle and attach the Heroku Java metrics agent. |
+| Key                          | Default | Description                                            |
+| ---------------------------- | ------- | ------------------------------------------------------ |
+| `lucumaDockerDefaultMaxHeap` | `512`   | Max heap (MB) when cgroups don't report a limit.       |
+| `lucumaDockerMinHeap`        | `256`   | Minimum heap (MB).                                     |
+| `lucumaDockerHeapPercentMax` | `80`    | % of memory for heap when cgroups report `max`.        |
+| `lucumaDockerHeapSubtract`   | `0`     | MB to subtract from the memory limit when sizing heap. |
+| `lucumaDockerOpenDebugPorts` | `false` | Open JMX / JDWP debug ports in the start script.       |
+| `lucumaDockerUseHerokuAgent` | `true`  | Bundle and attach the Heroku Java metrics agent.       |
 
 ---
 
