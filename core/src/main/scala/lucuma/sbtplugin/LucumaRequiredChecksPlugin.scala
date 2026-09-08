@@ -51,10 +51,10 @@ object LucumaRequiredChecksPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
 
   override val buildSettings: Seq[Setting[_]] = Seq(
-    lucumaRequiredChecks              := true,
-    lucumaRequiredCheckJobs          := Seq("build"),
-    lucumaRequiredChecksJobName      := "REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED",
-    githubWorkflowGeneratedCI := {
+    lucumaRequiredChecks        := true,
+    lucumaRequiredCheckJobs     := Seq("build"),
+    lucumaRequiredChecksJobName := "REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED",
+    githubWorkflowGeneratedCI   := {
       val jobs = githubWorkflowGeneratedCI.value
       if (!lucumaRequiredChecks.value) jobs
       else {
@@ -82,7 +82,8 @@ object LucumaRequiredChecksPlugin extends AutoPlugin {
           List("""echo "::error::a required job did not pass"""", "exit 1"),
           name = Some("Fail if a required job did not pass"),
           // `skipped` is deliberately not a failure: a job the diff made pointless is fine
-          cond = Some("contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')")
+          cond =
+            Some("contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')")
         ),
         WorkflowStep.Run(
           List(s"""echo "all of ${required.mkString(", ")} passed or were skipped""""),
