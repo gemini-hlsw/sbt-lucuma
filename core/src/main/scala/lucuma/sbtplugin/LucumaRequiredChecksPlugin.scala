@@ -46,6 +46,10 @@ object LucumaRequiredChecksPlugin extends AutoPlugin {
 
   import autoImport.*
 
+  // LucumaAffectedPlugin is listed for ordering only, not for anything it provides. Both plugins
+  // append jobs to githubWorkflowGeneratedCI, and this one must see the final list to validate ids
+  // against it. Since LucumaAffectedPlugin already activates wherever LucumaPlugin does, this
+  // changes nothing about where this plugin is active.
   override def requires: Plugins = LucumaPlugin && LucumaAffectedPlugin
 
   override def trigger: PluginTrigger = allRequirements

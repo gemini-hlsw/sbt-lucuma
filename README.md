@@ -229,8 +229,9 @@ flaky lookup costs you the job names rather than the whole notification.
 
 ### `LucumaRequiredChecksPlugin`
 
-**Activation:** Automatic (requires `LucumaPlugin`). Disable with
-`ThisBuild / lucumaRequiredChecks := false`.
+**Activation:** Automatic (requires `LucumaPlugin`, and `LucumaAffectedPlugin` purely so it runs
+after it: both append jobs to the workflow, and this one validates against the final list).
+Disable with `ThisBuild / lucumaRequiredChecks := false`.
 
 Generates one CI job to require in branch protection, instead of requiring one entry per test shard, JDK and Scala version.
 
