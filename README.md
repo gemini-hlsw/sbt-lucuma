@@ -151,7 +151,7 @@ Tests aren't the only thing a PR can make pointless. Building and linking an app
 image, checking a bundle size — none of that needs to happen if the diff can't reach the projects
 it's built from.
 
-Name the projects a job consumes and it's skipped when none of them are affected:
+Name the projects a job consumes and its work is skipped when none of them are affected:
 
 ```scala
 ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
@@ -163,15 +163,16 @@ ThisBuild / githubWorkflowAddedJobs += lucumaAffectedJob(
 It takes the projects themselves, not their ids, so a rename is a refactor and a typo is a compile
 error. For a crossProject, name the platform you mean: `schemas_lib.js`.
 
-`lucumaAffectedJob` adds the dependency and ANDs the condition onto whatever the job already had.
-For a single step, or to build the expression yourself, use `lucumaAffectedCond(explore_app)` and
-add `lucumaAffectedJobId` to the job's `needs`.
+`lucumaAffectedJob` adds the `needs` edge and ANDs the condition onto every **step**, leaving the
+job's own condition alone — so the job still runs, it just does nothing. For a single step, or to
+build the expression yourself, use `lucumaAffectedCond(explore_app)` and add `lucumaAffectedJobId`
+to the job's `needs`.
 
-It gates every **step** rather than the job itself. That costs a runner start, about fifteen
-seconds, and avoids a trap: GitHub doesn't expand `strategy.matrix` for a job skipped by a
-job-level condition, so such a job reports one check run named `Build and deploy Explore` instead
-of one per matrix combination, `Build and deploy Explore (ubuntu-22.04, temurin@25)`. Branch
-protection requiring the matrixed name then sits at *"Expected — Waiting for status to be
+Gating steps rather than the job costs a runner start, about fifteen seconds, and avoids a trap.
+GitHub doesn't expand `strategy.matrix` for a job skipped by a job-level condition, so such a job
+reports a single check run under its bare name — `Build and deploy Explore` — instead of one per
+matrix combination — `Build and deploy Explore (ubuntu-22.04, temurin@25)`. If branch protection
+or Mergify requires the matrixed name, it then sits at *"Expected — Waiting for status to be
 reported"* forever. sbt can't see which checks are required, so the plugin takes the option that
 can't break.
 
