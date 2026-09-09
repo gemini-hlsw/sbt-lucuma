@@ -79,6 +79,12 @@ object LucumaAffectedPlugin extends AutoPlugin {
     /**
      * Skips `job` entirely unless one of the given projects is affected -- for work that a diff can
      * only break through those projects, like building or deploying an application.
+     *
+     * @note
+     *   A skipped job reports its check under the bare job name, without the matrix values GitHub
+     *   appends when it actually runs, so requiring the matrixed name in branch protection would
+     *   wait forever. Require the job from `LucumaRequiredChecksPlugin` instead: it depends on jobs
+     *   by id, so it is indifferent to whether this one ran.
      */
     def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
       val cond = lucumaAffectedCond(project, more: _*)
