@@ -15,7 +15,7 @@ CSS bundling, Docker packaging). It is built on [sbt-typelevel](https://github.c
   so a side-effecting one needs `Def.uncached`; `Classpath` holds `HashedVirtualFileRef`, not
   `File`, so convert through `fileConverter.value`; `target.value` now resolves under
   `target/out/jvm/scala-<ver>/<project>/`; and the CLI needs one `;`-separated argument rather
-  than several words.
+  than several words. `docs/sbt-2-migration.md` is the porting guide handed to consumers.
 - **Self-bootstrapping / dogfooding.** `project/plugins.sbt` adds the `core` and `lib` plugin
   sources directly as `unmanagedSourceDirectories` of the meta-build, so this build uses its
   own plugins to build itself (e.g. `lucumaScalafmtCheck`/`lucumaScalafixCheck` run in CI
