@@ -3,7 +3,8 @@
 A collection of sbt plugins for shared build settings across Gemini lucuma projects.
 
 **Requires sbt 2.x** (2.0.8 or later). Since 0.17 these are sbt 2 plugins, published as
-`_sbt2_3`; the 0.16 line remains the last one for sbt 1.
+`_sbt2_3`; the 0.16 line remains the last one for sbt 1. To port an existing project, see
+[docs/sbt-2-migration.md](docs/sbt-2-migration.md).
 
 ## Artifacts
 
