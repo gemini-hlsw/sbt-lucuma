@@ -3,7 +3,11 @@ Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "cor
 Compile / unmanagedResourceDirectories += baseDirectory.value.getParentFile / "core" / "src" / "main" / "resources"
 Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "lib" / "src" / "main" / "scala"
 
-val sbtTypelevelVersion      = "0.8.7" // Update in build.sbt as well
+resolvers += "gemini-hlsw".at(
+  "https://raw.githubusercontent.com/gemini-hlsw/maven-repo/master/releases"
+)
+
+val sbtTypelevelVersion      = "0.8-c827b1a-20260910T122817Z-SNAPSHOT" // Update in build.sbt as well
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-settings"   % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-mergify"    % sbtTypelevelVersion)

@@ -8,7 +8,7 @@ lazy val model = crossProject(JVMPlatform, JSPlatform).crossType(CrossType.Pure)
 
 lazy val checkWorkflow = inputKey[Unit]("Assert the generated build job's steps")
 
-ThisBuild / checkWorkflow := {
+ThisBuild / checkWorkflow := Def.uncached {
   val expected = sbt.complete.DefaultParsers.spaceDelimited("<command>").parsed.head
   val build    = (ThisBuild / githubWorkflowGeneratedCI).value
     .find(_.id == "build")
@@ -18,7 +18,10 @@ ThisBuild / checkWorkflow := {
   if (!names.contains("scalaJSLink"))
     sys.error(s"scalaJSLink was dropped; steps are ${names.mkString(", ")}")
 
-  val test = build.steps.collect { case s: WorkflowStep.Sbt if s.commands == List(expected) => s }
+  // LucumaWorkflowSyntaxPlugin has already joined each step into one `;`-separated command
+  val test = build.steps.collect {
+    case s: WorkflowStep.Sbt if s.commands.exists(_.split("; ").last == expected) => s
+  }
   if (test.size != 1) sys.error(s"expected one `$expected` step, steps are ${names.mkString(", ")}")
 
   val link = names.indexOf("scalaJSLink")
