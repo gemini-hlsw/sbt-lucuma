@@ -1,10 +1,12 @@
 // The git plumbing is exercised against a real repository elsewhere; here we feed the diff in
 // directly so the test can focus on how files map onto projects and dependents.
-ThisBuild / lucumaAffectedChangedFiles := Some(IO.readLines(file("changed.txt")).filter(_.nonEmpty))
+ThisBuild / lucumaAffectedChangedFiles := Def.uncached(
+  Some(IO.readLines(file("changed.txt")).filter(_.nonEmpty))
+)
 
 lazy val checkAffected = inputKey[Unit]("Assert the affected project set")
 
-ThisBuild / checkAffected := {
+ThisBuild / checkAffected := Def.uncached {
   val expected = sbt.complete.DefaultParsers.spaceDelimited("<project>").parsed.sorted
   val actual   = lucumaAffectedProjects.value.sorted
   if (actual != expected)
@@ -23,7 +25,7 @@ lazy val e = project.in(file("e")).aggregate(c)
 // blows up if `lucumaTestAffected` schedules it, which it should only do on a full run
 lazy val d = project
   .in(file("d"))
-  .settings(Test / test := sys.error("d's tests should not have run"))
+  .settings(Test / test := Def.uncached(sys.error("d's tests should not have run")))
 
 // stands in for a crossProject: sources live outside the project's base directory
 lazy val x = project

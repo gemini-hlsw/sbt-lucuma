@@ -63,7 +63,7 @@ object LucumaSlackPlugin extends AutoPlugin {
 
   private val workflowFile = "ci-failure-slack.yml"
 
-  override val buildSettings: Seq[Setting[_]] = Seq(
+  override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaSlackNotify          := true,
     lucumaSlackNotifyWorkflows := Seq("Continuous Integration"),
     lucumaSlackNotifyBranch    := "main",

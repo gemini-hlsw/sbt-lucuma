@@ -18,7 +18,7 @@ lazy val checkNoJob   = taskKey[Unit]("No affected job when nothing gates on it"
 
 def jobs = Def.task((ThisBuild / githubWorkflowGeneratedCI).value)
 
-ThisBuild / checkGate := {
+ThisBuild / checkGate := Def.uncached {
   val all      = (ThisBuild / githubWorkflowGeneratedCI).value
   val affected = all.find(_.id == "affected").getOrElse(sys.error("no `affected` job"))
   val deploy   = all.find(_.id == "deploy").getOrElse(sys.error("no `deploy` job"))
@@ -52,13 +52,13 @@ ThisBuild / checkGate := {
 
 lazy val checkNoDuplicate = taskKey[Unit]("A hand-written affected job is not doubled")
 
-ThisBuild / checkNoDuplicate := {
+ThisBuild / checkNoDuplicate := Def.uncached {
   val ids = (ThisBuild / githubWorkflowGeneratedCI).value.map(_.id)
   if (ids.count(_ == "affected") != 1)
     sys.error(s"duplicate or missing `affected` job: ${ids.mkString(", ")}")
 }
 
-ThisBuild / checkNoJob := {
+ThisBuild / checkNoJob := Def.uncached {
   val all = (ThisBuild / githubWorkflowGeneratedCI).value
   if (all.exists(_.id == "affected"))
     sys.error("generated an `affected` job that nothing depends on")
