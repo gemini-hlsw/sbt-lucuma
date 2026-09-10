@@ -152,7 +152,16 @@ object LucumaAffectedPlugin extends AutoPlugin {
   /** The one place the plan is computed; every task and the command go through it. */
   private lazy val planTask: Def.Initialize[Task[AffectedProjects.Plan]] = Def.task {
     val log    = streams.value.log
-    val result = plan(state.value, lucumaAffectedChangedFiles.value, log)
+    // Read the path settings here, with `.value`, rather than via `Project.extract` inside `plan`:
+    // that keeps them in sbt's dependency graph, so `lintUnused` knows a build that sets them is
+    // not setting something nobody reads.
+    val result = plan(
+      state.value,
+      lucumaAffectedChangedFiles.value,
+      lucumaAffectedAlwaysPaths.value,
+      lucumaAffectedIgnorePaths.value,
+      log
+    )
     result.reason.foreach(r => log.info(s"[affected] running everything: $r"))
     result
   }
@@ -245,7 +254,13 @@ object LucumaAffectedPlugin extends AutoPlugin {
       }
     }
 
-  private def plan(st: State, changed: Option[Seq[String]], log: Logger): AffectedProjects.Plan = {
+  private def plan(
+    st:      State,
+    changed: Option[Seq[String]],
+    always:  Seq[String],
+    ignore:  Seq[String],
+    log:     Logger
+  ): AffectedProjects.Plan = {
     val extracted = Project.extract(st)
     val structure = extracted.structure
     val deps      = extracted.get(Global / buildDependencies)
@@ -268,14 +283,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
     log.debug(s"[affected] changed files: ${changed.fold("<unknown>")(_.mkString(", "))}")
 
-    AffectedProjects.plan(
-      changed,
-      projectInfos(st),
-      dependents,
-      testable,
-      extracted.get(ThisBuild / lucumaAffectedAlwaysPaths),
-      extracted.get(ThisBuild / lucumaAffectedIgnorePaths)
-    )
+    AffectedProjects.plan(changed, projectInfos(st), dependents, testable, always, ignore)
   }
 
   private def projectInfos(st: State): Seq[ProjectInfo] = {
