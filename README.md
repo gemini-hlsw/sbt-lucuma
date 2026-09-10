@@ -11,7 +11,7 @@ transitively. The CSS, Docker, and jsdom artifacts are added as needed.
 
 | Artifact            | Add with                                                                    | Provides                                                                                                       |
 | ------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin` |
+| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin` |
 | `sbt-lucuma-lib`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-lib" % V)`                         | `LucumaLibPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-app`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % V)`                         | `LucumaAppPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-css`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % V)`                         | `LucumaCssPlugin`                                                                                              |
@@ -87,14 +87,6 @@ The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 | ------------------------ | -------------------------------------------------------- |
 | `lucumaScalafixGenerate` | Write the common scalafix config to the build root.      |
 | `lucumaScalafixCheck`    | Fail if the on-disk config differs from the bundled one. |
-
-### `LucumaBundleMonPlugin`
-
-**Activation:** Automatic where `BundleMonPlugin` is present (requires `LucumaPlugin` &&
-`BundleMonPlugin`).
-
-Adds a "Monitor bundle size" CI step (runs `bundleMon` for the `rootJS` matrix project) and
-sets `bundleMonCompression := Brotli`.
 
 ### `LucumaAffectedPlugin`
 

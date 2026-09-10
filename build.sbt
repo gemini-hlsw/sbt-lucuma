@@ -27,7 +27,6 @@ lazy val core = project
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-mergify"    % sbtTypelevelVersion),
-    addSbtPlugin("com.armanbilge"     % "sbt-bundlemon"            % "0.1.4"),
     addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.7.0"),
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.6" % Test,
     scriptedLaunchOpts                     :=
