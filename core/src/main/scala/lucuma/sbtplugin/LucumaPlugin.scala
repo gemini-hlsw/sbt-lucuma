@@ -60,6 +60,12 @@ object LucumaPlugin extends AutoPlugin {
       Compile / doc / sources := Seq.empty
     )
 
+    // Under sbt 2 `src_managed` sits inside the project's output directory, so a generated
+    // source reaches the mappings by both routes and the zip rejects the duplicate entry.
+    lazy val lucumaPackageSettings = Seq(
+      Compile / packageSrc / mappings ~= (_.distinct)
+    )
+
     lazy val lucumaHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(
@@ -223,7 +229,7 @@ object LucumaPlugin extends AutoPlugin {
       commandAliasSettings
 
   override val projectSettings =
-    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaPackageSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
   lazy val commandAliasSettings: Seq[Setting[?]] = commandAliasSettings(Nil)
 
