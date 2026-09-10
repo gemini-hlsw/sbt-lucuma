@@ -22,7 +22,8 @@ object LucumaWorkflowSyntaxPlugin extends AutoPlugin {
 
   import GenerativePlugin.autoImport.*
 
-  override def requires: Plugins = LucumaPlugin && LucumaAffectedPlugin && LucumaRequiredChecksPlugin
+  override def requires: Plugins =
+    LucumaPlugin && LucumaAffectedPlugin && LucumaRequiredChecksPlugin
 
   override def trigger: PluginTrigger = allRequirements
 
