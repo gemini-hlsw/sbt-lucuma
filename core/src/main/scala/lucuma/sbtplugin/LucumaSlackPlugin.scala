@@ -68,7 +68,7 @@ object LucumaSlackPlugin extends AutoPlugin {
     lucumaSlackNotifyWorkflows := Seq("Continuous Integration"),
     lucumaSlackNotifyBranch    := "main",
     lucumaSlackWebhookSecret   := "GPP_SLACK_WEBHOOK_URL",
-    lucumaSlackNotifyGenerate  := {
+    lucumaSlackNotifyGenerate  := Def.uncached {
       val target   = workflowPath.value
       val expected = contents.value
       val log      = streams.value.log
@@ -80,7 +80,7 @@ object LucumaSlackPlugin extends AutoPlugin {
         log.info(s"Deleted $target (lucumaSlackNotify is false)")
       }
     },
-    lucumaSlackNotifyCheck     := {
+    lucumaSlackNotifyCheck     := Def.uncached {
       val target   = workflowPath.value
       val expected = contents.value
       if (lucumaSlackNotify.value) {
