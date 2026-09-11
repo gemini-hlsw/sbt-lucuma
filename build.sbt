@@ -1,16 +1,24 @@
-ThisBuild / tlBaseVersion       := "0.16"
-ThisBuild / crossScalaVersions  := Seq("2.12.21")
+// sbt 2 / Scala 3 is a fresh artifact axis: nothing was published for it before 0.17.
+ThisBuild / tlBaseVersion       := "0.17"
+ThisBuild / tlVersionIntroduced := Map("3" -> "0.17.0")
+ThisBuild / crossScalaVersions  := Seq("3.8.3")
 ThisBuild / tlCiReleaseBranches := Seq("main")
 
-// core's plugin behavior is covered by scripted; css runs its own via `Test / test`
+// plugin behavior is covered by scripted, which `test` does not run
 ThisBuild / githubWorkflowBuild +=
-  WorkflowStep.Sbt(List("core/scripted"), name = Some("Scripted tests"))
+  WorkflowStep.Sbt(List("core/scripted", "css/scripted"), name = Some("Scripted tests"))
 
-enablePlugins(NoPublishPlugin)
+ThisBuild / resolvers +=
+  "gemini-hlsw".at("https://raw.githubusercontent.com/gemini-hlsw/maven-repo/master/releases")
 
-val sbtTypelevelVersion = "0.8.7" // Update in plugins.sbt as well
+val sbtTypelevelVersion = "0.8-c827b1a-20260910T122817Z-SNAPSHOT" // Update in plugins.sbt as well
 
 val scalaJsVersion = "1.22.0"
+
+lazy val root = project
+  .in(file("."))
+  .enablePlugins(NoPublishPlugin)
+  .aggregate(core, app, lib, css, docker)
 
 lazy val core = project
   .in(file("core"))
@@ -27,7 +35,6 @@ lazy val core = project
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-github"     % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-mergify"    % sbtTypelevelVersion),
-    addSbtPlugin("com.armanbilge"     % "sbt-bundlemon"            % "0.1.4"),
     addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.7.0"),
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.6" % Test,
     scriptedLaunchOpts                     :=
@@ -59,20 +66,7 @@ lazy val css = project
     name               := "sbt-lucuma-css",
     addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJsVersion),
     scriptedLaunchOpts :=
-      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value),
-    Test / test        :=
-      scripted.toTask("").value
-  )
-
-lazy val jsdom = project
-  .in(file("jsdom"))
-  .settings(
-    name                := "lucuma-jsdom",
-    libraryDependencies ++= Seq(
-      "org.scala-js"  %% "scalajs-env-jsdom-nodejs" % "1.1.1",
-      "org.scala-sbt" %% "io"                       % "1.13.2"
-    ),
-    tlVersionIntroduced := Map("2.12" -> "0.10.11")
+      scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
   )
 
 val HerokuAgentVersion = "4.0.4"

@@ -14,5 +14,5 @@ lazy val baz = project
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .dependsOn(bar) // depend on a local classpath
   .settings( // depend on a jar
-    libraryDependencies += organization.value %%% "foo" % version.value
+    libraryDependencies += organization.value %% "foo" % version.value
   )

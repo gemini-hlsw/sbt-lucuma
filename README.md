@@ -2,21 +2,24 @@
 
 A collection of sbt plugins for shared build settings across Gemini lucuma projects.
 
+**Requires sbt 2.x** (2.0.8 or later). Since 0.17 these are sbt 2 plugins, published as
+`_sbt2_3`; the 0.16 line remains the last one for sbt 1. To port an existing project, see
+[docs/sbt-2-migration.md](docs/sbt-2-migration.md).
+
 ## Artifacts
 
 The plugins are split across several published artifacts. Most projects only need
 **one** of `sbt-lucuma-lib` (for published libraries) or `sbt-lucuma-app` (for
 applications) — both depend on the core `sbt-lucuma` artifact and pull in its plugins
-transitively. The CSS, Docker, and jsdom artifacts are added as needed.
+transitively. The CSS and Docker artifacts are added as needed.
 
 | Artifact            | Add with                                                                    | Provides                                                                                                       |
 | ------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin` |
+| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaWorkflowSyntaxPlugin` |
 | `sbt-lucuma-lib`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-lib" % V)`                         | `LucumaLibPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-app`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % V)`                         | `LucumaAppPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-css`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % V)`                         | `LucumaCssPlugin`                                                                                              |
 | `sbt-lucuma-docker` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-docker" % V)`                      | `LucumaDockerPlugin` (+ core)                                                                                  |
-| `lucuma-jsdom`      | `libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % V` (in `project/`) | `LucumaJSDOMNodeJSEnv`                                                                                         |
 
 In the tables below, **Activation** is either:
 
@@ -88,13 +91,17 @@ The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 | `lucumaScalafixGenerate` | Write the common scalafix config to the build root.      |
 | `lucumaScalafixCheck`    | Fail if the on-disk config differs from the bundled one. |
 
-### `LucumaBundleMonPlugin`
+### `LucumaWorkflowSyntaxPlugin`
 
-**Activation:** Automatic where `BundleMonPlugin` is present (requires `LucumaPlugin` &&
-`BundleMonPlugin`).
+**Activation:** Automatic.
 
-Adds a "Monitor bundle size" CI step (runs `bundleMon` for the `rootJS` matrix project) and
-sets `bundleMonCompression := Brotli`.
+Rewrites the `sbt` invocations in the generated workflow so they parse under sbt 2, which
+rejects `sbt a b c` and mis-reads `sbt '++ 3' foo --bar`. Each step becomes a single
+`;`-separated argument with the `++` folded in, and the broken `scalafixAll --check` step
+becomes `scalafix --check; Test/scalafix --check`.
+
+It runs after every other lucuma plugin that rewrites the generated CI, because those match
+on a step's individual commands, which no longer exist once they have been joined.
 
 ### `LucumaAffectedPlugin`
 
@@ -339,7 +346,11 @@ Opinionated Docker packaging (via sbt-native-packager) for lucuma server applica
 
 ---
 
-## `lucuma-jsdom`
+## `lucuma-jsdom` (not published for sbt 2)
+
+`scalajs-env-jsdom-nodejs` has no Scala 3 build, so this module is out of the build until
+one exists. Its source is still in `jsdom/`. The last published version is on the 0.16 line,
+for sbt 1.
 
 ### `LucumaJSDOMNodeJSEnv`
 

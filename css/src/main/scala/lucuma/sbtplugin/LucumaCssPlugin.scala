@@ -16,8 +16,8 @@ object LucumaCssPlugin extends AutoPlugin {
     lazy val lucumaCssExts = settingKey[Set[String]]("Extensions for CSS files")
     lazy val lucumaCss     = taskKey[Unit]("Copy CSS to target")
   }
-  import autoImport._
-  import ScalaJSPlugin.autoImport._
+  import autoImport.*
+  import ScalaJSPlugin.autoImport.*
 
   private final val cssDir = "lucuma-css"
 
@@ -26,15 +26,20 @@ object LucumaCssPlugin extends AutoPlugin {
   )
 
   override lazy val projectSettings = Seq(
-    Compile / fastLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
-    Compile / fullLinkJS := (Compile / fullLinkJS).dependsOn(Compile / lucumaCss).value,
-    Compile / lucumaCss  := {
+    Compile / fastLinkJS := Def.uncached(
+      (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value
+    ),
+    Compile / fullLinkJS := Def.uncached(
+      (Compile / fullLinkJS).dependsOn(Compile / lucumaCss).value
+    ),
+    Compile / lucumaCss  := Def.uncached {
       val cache   = streams.value.cacheStoreFactory.make("css")
       val log     = streams.value.log
       val cssExts = lucumaCssExts.value.map("." + _)
+      val conv    = fileConverter.value
 
       val files = (Compile / fullClasspath).value.flatMap { attr =>
-        val file = attr.data
+        val file = conv.toPath(attr.data).toFile
         if (file.getName.endsWith(".jar"))
           List(file)
         else
@@ -42,7 +47,7 @@ object LucumaCssPlugin extends AutoPlugin {
       }.toSet
 
       def copyJar(file: File): Unit =
-        IO.unzip(
+        val _ = IO.unzip(
           file,
           target.value,
           name =>

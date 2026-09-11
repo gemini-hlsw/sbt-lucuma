@@ -79,17 +79,23 @@ object LucumaDockerPlugin extends AutoPlugin {
     ),
     dockerUpdateLatest              := true,
     dockerUsername                  := Some("noirlab"),
-    Docker / mappings               := (Docker / mappings).value ++ {
-      if (lucumaDockerUseHerokuAgent.value) {
-        val tmpDir: File  = target.value / HerokuAgentTempTargetDir
-        tmpDir.mkdirs()
-        val tmpFile: File = tmpDir / HerokuAgentFilename
-        cleanFiles ++= Seq(tmpFile, tmpDir)
-        val status: Int   = url(HerokuAgentUrl) #> tmpFile !
+    Docker / mappings               := Def.uncached {
+      (Docker / mappings).value ++ {
+        if (lucumaDockerUseHerokuAgent.value) {
+          val conv          = fileConverter.value
+          val tmpDir: File  = target.value / HerokuAgentTempTargetDir
+          tmpDir.mkdirs()
+          val tmpFile: File = tmpDir / HerokuAgentFilename
+          val status: Int   = (uri(HerokuAgentUrl).toURL #> tmpFile).!
 
-        if (status > 0) throw new RuntimeException(s"Failed to download $HerokuAgentUrl")
-        else Seq(tmpFile -> s"${(Docker / defaultLinuxInstallLocation).value}/$HerokuAgentFilename")
-      } else Seq.empty
+          if (status > 0) throw new RuntimeException(s"Failed to download $HerokuAgentUrl")
+          else
+            Seq(
+              conv.toVirtualFile(tmpFile.toPath) ->
+                s"${(Docker / defaultLinuxInstallLocation).value}/$HerokuAgentFilename"
+            )
+        } else Seq.empty
+      }
     },
     // No javadocs
     Compile / packageDoc / mappings := Seq(),
@@ -138,7 +144,7 @@ object LucumaDockerPlugin extends AutoPlugin {
       ) ++
         Source
           .fromInputStream(getClass.getResourceAsStream("docker-set-memory.sh"))
-          .getLines
+          .getLines()
           .toSeq
   )
 

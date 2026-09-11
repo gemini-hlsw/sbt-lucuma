@@ -63,12 +63,12 @@ object LucumaSlackPlugin extends AutoPlugin {
 
   private val workflowFile = "ci-failure-slack.yml"
 
-  override val buildSettings: Seq[Setting[_]] = Seq(
+  override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaSlackNotify          := true,
     lucumaSlackNotifyWorkflows := Seq("Continuous Integration"),
     lucumaSlackNotifyBranch    := "main",
     lucumaSlackWebhookSecret   := "GPP_SLACK_WEBHOOK_URL",
-    lucumaSlackNotifyGenerate  := {
+    lucumaSlackNotifyGenerate  := Def.uncached {
       val target   = workflowPath.value
       val expected = contents.value
       val log      = streams.value.log
@@ -80,7 +80,7 @@ object LucumaSlackPlugin extends AutoPlugin {
         log.info(s"Deleted $target (lucumaSlackNotify is false)")
       }
     },
-    lucumaSlackNotifyCheck     := {
+    lucumaSlackNotifyCheck     := Def.uncached {
       val target   = workflowPath.value
       val expected = contents.value
       if (lucumaSlackNotify.value) {
