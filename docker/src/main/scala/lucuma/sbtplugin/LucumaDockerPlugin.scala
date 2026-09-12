@@ -6,9 +6,14 @@ package lucuma.sbtplugin
 import buildinfo.BuildInfo.HerokuAgentVersion
 import com.typesafe.sbt.packager.Keys.*
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+import com.typesafe.sbt.packager.debian.DebianPlugin.autoImport.Debian
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
+import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.Linux
+import com.typesafe.sbt.packager.rpm.RpmPlugin.autoImport.Rpm
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.Universal
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.UniversalDocs
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.UniversalSrc
 import sbt.*
 import sbt.Keys.*
 
@@ -51,6 +56,24 @@ object LucumaDockerPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   import autoImport.*
+
+  override lazy val globalSettings = Seq(
+    excludeLintKeys ++= Set(
+      Debian / daemonGroup,
+      Debian / daemonGroupGid,
+      Debian / daemonUser,
+      Debian / daemonUserUid,
+      Debian / executableScriptName,
+      Linux / javaOptions,
+      Rpm / daemonGroupGid,
+      Rpm / daemonUserUid,
+      Rpm / executableScriptName,
+      Rpm / name,
+      Universal / executableScriptName,
+      UniversalDocs / name,
+      UniversalSrc / name
+    )
+  )
 
   override lazy val buildSettings = Seq(
     lucumaDockerDefaultMaxHeap := 512,

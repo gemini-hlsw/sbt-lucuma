@@ -46,6 +46,7 @@ out/
 .bsp/
 .hydra/
 metals.sbt
+*.semanticdb
 
 # Vim
 *.swp
