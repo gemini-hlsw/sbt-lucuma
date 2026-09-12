@@ -228,6 +228,9 @@ class AffectedProjectsSuite extends FunSuite {
   // an untested build.
   test("a tag is never narrowed") {
     assertEquals(baseRef(push("v1.2.3", refType = "tag") - PushBaseEnv), None)
+    // a freshly cut tag sends all zeroes, but one *moved* onto a new commit sends the commit it
+    // used to point at, which must not become a base either
+    assertEquals(baseRef(push("v1.2.3", refType = "tag", before = "abc123")), None)
   }
 
   test("a branch's first push is not narrowed against all-zeroes") {

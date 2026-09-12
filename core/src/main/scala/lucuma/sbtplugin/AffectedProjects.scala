@@ -84,6 +84,8 @@ private[sbtplugin] object AffectedProjects {
    *      see the same diff its pull_request counterpart sees, instead of falling back to
    *      "everything" because no base ref was supplied;
    *   1. [[PushBaseEnv]], which is how a push to the default branch itself gets a base.
+   *
+   * Tags are never narrowed: a release gets the full suite.
    */
   def baseRef(env: Map[String, String]): Option[String] = {
     def get(key: String): Option[String] = env.get(key).map(_.trim).filter(_.nonEmpty)
@@ -91,7 +93,7 @@ private[sbtplugin] object AffectedProjects {
     get(BaseEnv)
       .orElse(get("GITHUB_BASE_REF").map("origin/" + _))
       .orElse(defaultBranchBase(get))
-      .orElse(get(PushBaseEnv).filter(isCommit))
+      .orElse(pushBase(get))
   }
 
   /**
@@ -110,6 +112,15 @@ private[sbtplugin] object AffectedProjects {
         get("GITHUB_REF_NAME").exists(_ != default)
       }
       .map("origin/" + _)
+
+  /**
+   * The previous tip of the ref being pushed. Refused on a tag: Actions sends all zeroes for a
+   * freshly created one, but a tag *moved* onto a new commit carries the commit it used to point
+   * at, and narrowing a release against that would test next to nothing. An absent ref type is
+   * assumed not to be a tag, so a build feeding this in outside Actions still gets its base.
+   */
+  private def pushBase(get: String => Option[String]): Option[String] =
+    get(PushBaseEnv).filter(isCommit).filterNot(_ => get("GITHUB_REF_TYPE").contains("tag"))
 
   /** Actions sends all zeroes for a branch's first push, and nothing for a deleted ref. */
   private def isCommit(sha: String): Boolean = sha.nonEmpty && sha.exists(_ != '0')
