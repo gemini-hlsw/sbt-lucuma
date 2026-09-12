@@ -36,6 +36,10 @@ lazy val core = project
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-settings"   % sbtTypelevelVersion),
     addSbtPlugin("org.typelevel"      % "sbt-typelevel-mergify"    % sbtTypelevelVersion),
     addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.7.0"),
+    // Fork of io.spray's sbt-revolver, which has no sbt 2 build. Same API: reStart, reStop, etc.
+    // In core so that reStart is available from the shell in any lucuma build, whatever bundle
+    // it pins; running something locally has nothing to do with how it is packaged.
+    addSbtPlugin("com.indoorvivants"  % "sbt-revolver"             % "0.11.2"),
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.6" % Test,
     scriptedLaunchOpts                     :=
       scriptedLaunchOpts.value ++ Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
@@ -46,9 +50,7 @@ lazy val app = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma-app",
-    addSbtPlugin("com.github.sbt"    % "sbt-git"      % "2.2.0"),
-    // Fork of io.spray's sbt-revolver, which has no sbt 2 build. Same API: reStart, reStop, etc.
-    addSbtPlugin("com.indoorvivants" % "sbt-revolver" % "0.11.2")
+    addSbtPlugin("com.github.sbt" % "sbt-git" % "2.2.0")
   )
   .dependsOn(core)
 

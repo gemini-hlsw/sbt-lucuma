@@ -49,6 +49,11 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
   workflow, headers, and scalafmt/scalafix configs.
 
+Also brings in [sbt-revolver](https://github.com/indoorvivants/sbt-revolver), so `reStart` /
+`reStop` / `reStatus` / `reStartArgs` are available from the sbt shell in any lucuma build,
+whatever bundle it pins. This is the `com.indoorvivants` fork: the original `io.spray` plugin
+has no sbt 2 build. The API is unchanged.
+
 Selected `autoImport`:
 
 | Key                                                                                                                                                                                                                                                                                | Description                                                                          |
@@ -301,11 +306,6 @@ verification.
 For **applications** (as opposed to published libraries). Defines a date + git-hash version
 scheme (e.g. `20250101-abcdef12`, suffixed `-UNCOMMITTED` when the tree is dirty) and disables
 MiMa binary-issue checks (`tlCiMimaBinaryIssueCheck := false`).
-
-Also brings in [sbt-revolver](https://github.com/indoorvivants/sbt-revolver) for the dev loop,
-so `reStart` / `reStop` / `reStatus` / `reStartArgs` are available without each build adding the
-plugin itself. This is the `com.indoorvivants` fork: the original `io.spray` plugin has no sbt 2
-build. The API is unchanged.
 
 ---
 
