@@ -58,6 +58,19 @@ ThisBuild / checkNoDuplicate := {
     sys.error(s"duplicate or missing `affected` job: ${ids.mkString(", ")}")
 }
 
+lazy val checkDefaultBranchEnv = taskKey[Unit]("The workflow publishes the default branch name")
+
+// Workflow-wide rather than per-job: a push build has no GITHUB_BASE_REF, and this is what lets it
+// diff against the default branch instead of falling back to testing everything.
+ThisBuild / checkDefaultBranchEnv := {
+  val env = (ThisBuild / githubWorkflowEnv).value
+  val expected = "${{ github.event.repository.default_branch }}"
+  if (env.get("LUCUMA_AFFECTED_DEFAULT_BRANCH") != Some(expected))
+    sys.error(s"expected $expected but got ${env.get("LUCUMA_AFFECTED_DEFAULT_BRANCH")}")
+  // the plugin must add to the workflow env, not replace it
+  if (!env.contains("GITHUB_TOKEN")) sys.error(s"clobbered the inherited env: $env")
+}
+
 ThisBuild / checkNoJob := {
   val all = (ThisBuild / githubWorkflowGeneratedCI).value
   if (all.exists(_.id == "affected"))

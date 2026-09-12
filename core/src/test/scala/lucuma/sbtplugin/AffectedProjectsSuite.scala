@@ -187,4 +187,70 @@ class AffectedProjectsSuite extends FunSuite {
     assert(!touches("a/b/c.scala", "z"))
     assert(!touches("ab/c.scala", "a"))
   }
+
+  //
+  // baseRef: what each CI event ends up diffing against
+  //
+
+  private def pullRequest(base: String) =
+    Map("GITHUB_BASE_REF" -> base, "GITHUB_REF_NAME" -> "42/merge", "GITHUB_REF_TYPE" -> "branch")
+
+  private def push(ref: String, refType: String = "branch", before: String = "abc123") =
+    Map(
+      "GITHUB_REF_NAME" -> ref,
+      "GITHUB_REF_TYPE" -> refType,
+      DefaultBranchEnv  -> "main",
+      PushBaseEnv       -> before
+    )
+
+  test("a pull_request diffs against the branch it merges into") {
+    assertEquals(baseRef(pullRequest("main") ++ push("42/merge")), Some("origin/main"))
+    // a stacked PR targets its parent branch, not the default one
+    assertEquals(baseRef(pullRequest("feature-a")), Some("origin/feature-a"))
+  }
+
+  // The whole point: the push run GitHub fires alongside the pull_request run must see the same
+  // diff, instead of falling back to "everything" for want of a base ref.
+  test("a push to a non-default branch diffs against the default branch") {
+    assertEquals(baseRef(push("my-branch")), Some("origin/main"))
+    // and not against the branch's previous tip, which would only see the newest commits
+    assertEquals(baseRef(push("my-branch", before = "deadbeef")), Some("origin/main"))
+  }
+
+  // Tests on the default branch are the backstop for everything the dependency graph can't see.
+  test("a push to the default branch falls through to its previous tip") {
+    assertEquals(baseRef(push("main")), Some("abc123"))
+    // ... and to nothing at all where that is absent, i.e. the build job
+    assertEquals(baseRef(push("main") - PushBaseEnv), None)
+  }
+
+  // Diffing a tag against the branch it points into yields nothing changed, which would publish
+  // an untested build.
+  test("a tag is never narrowed") {
+    assertEquals(baseRef(push("v1.2.3", refType = "tag") - PushBaseEnv), None)
+  }
+
+  test("a branch's first push is not narrowed against all-zeroes") {
+    assertEquals(baseRef(push("main", before = "0000000000000000000000000000000000000000")), None)
+    assertEquals(baseRef(push("main", before = "")), None)
+  }
+
+  test("an explicit base always wins") {
+    assertEquals(baseRef(push("my-branch") + (BaseEnv -> "origin/release")), Some("origin/release"))
+    assertEquals(baseRef(pullRequest("main") + (BaseEnv -> "HEAD~3")), Some("HEAD~3"))
+  }
+
+  test("outside CI there is no base, so everything is affected") {
+    assertEquals(baseRef(Map.empty), None)
+    // a default branch alone is not enough: without a ref we cannot tell whether we are on it
+    assertEquals(baseRef(Map(DefaultBranchEnv -> "main")), None)
+    // nor is a ref whose type we cannot confirm is a branch
+    assertEquals(baseRef(Map(DefaultBranchEnv -> "main", "GITHUB_REF_NAME" -> "x")), None)
+  }
+
+  test("blank env vars are treated as absent, not as valid refs") {
+    assertEquals(baseRef(push("my-branch") + (BaseEnv -> "  ")), Some("origin/main"))
+    assertEquals(baseRef(push("my-branch") + ("GITHUB_BASE_REF" -> "")), Some("origin/main"))
+    assertEquals(baseRef(push("my-branch") + (DefaultBranchEnv -> "")), Some("abc123"))
+  }
 }
