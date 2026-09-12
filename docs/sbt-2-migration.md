@@ -51,7 +51,8 @@ you are pinning: `sbt-native-packager`, `sbt-header`, `sbt-scalafmt` (2.6.2 or l
 
 `sbt-revolver` is the awkward one. The original `io.spray` artifact has no sbt 2 build, but
 [indoorvivants/sbt-revolver](https://github.com/indoorvivants/sbt-revolver) does and keeps the
-same API, so `reStart` / `reStop` / `reStartArgs` survive a one-line change:
+same API, so `reStart` / `reStop` / `reStartArgs` survive the switch. sbt-lucuma brings it in
+from core, so a lucuma build needs nothing. Anything else adds it directly:
 
 ```scala
 addSbtPlugin("com.indoorvivants" % "sbt-revolver" % "0.11.2")
