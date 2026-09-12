@@ -355,6 +355,11 @@ For **applications** (as opposed to published libraries). Defines a date + git-h
 scheme (e.g. `20250101-abcdef12`, suffixed `-UNCOMMITTED` when the tree is dirty) and disables
 MiMa binary-issue checks (`tlCiMimaBinaryIssueCheck := false`).
 
+Also brings in [sbt-revolver](https://github.com/indoorvivants/sbt-revolver) for the dev loop,
+so `reStart` / `reStop` / `reStatus` / `reStartArgs` are available without each build adding the
+plugin itself. This is the `com.indoorvivants` fork: the original `io.spray` plugin has no sbt 2
+build. The API is unchanged.
+
 ---
 
 ## `sbt-lucuma-css`
@@ -396,6 +401,11 @@ Opinionated Docker packaging (via sbt-native-packager) for lucuma server applica
 | `lucumaDockerHeapSubtract`   | `0`     | MB to subtract from the memory limit when sizing heap. |
 | `lucumaDockerOpenDebugPorts` | `false` | Open JMX / JDWP debug ports in the start script.       |
 | `lucumaDockerUseHerokuAgent` | `true`  | Bundle and attach the Heroku Java metrics agent.       |
+
+It also adds sbt 2 lint exclusions for the Debian, Rpm and Linux settings sbt-native-packager
+defines but a Docker-only build never reads, which otherwise produce ~90 warnings per project.
+The exclusions are scoped to those configurations, so genuinely unused settings in your own
+build are still reported.
 
 ---
 

@@ -46,7 +46,9 @@ lazy val app = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-lucuma-app",
-    addSbtPlugin("com.github.sbt" % "sbt-git" % "2.2.0")
+    addSbtPlugin("com.github.sbt"    % "sbt-git"      % "2.2.0"),
+    // Fork of io.spray's sbt-revolver, which has no sbt 2 build. Same API: reStart, reStop, etc.
+    addSbtPlugin("com.indoorvivants" % "sbt-revolver" % "0.11.2")
   )
   .dependsOn(core)
 
