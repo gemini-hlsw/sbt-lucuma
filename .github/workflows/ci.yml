@@ -89,11 +89,11 @@ jobs:
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: mkdir -p target/out/jvm/scala-3.8.3/sbt-lucuma-css target/out/jvm/scala-3.8.3/sbt-lucuma-docker target/out/jvm/scala-3.8.3/sbt-lucuma-lib target/out/jvm/scala-3.8.3/sbt-lucuma-app target/out/jvm/scala-3.8.3/sbt-lucuma project/target
+        run: mkdir -p project/target target/out/jvm/scala-3.8.3/sbt-lucuma target/out/jvm/scala-3.8.3/sbt-lucuma-app target/out/jvm/scala-3.8.3/sbt-lucuma-css target/out/jvm/scala-3.8.3/sbt-lucuma-docker target/out/jvm/scala-3.8.3/sbt-lucuma-lib
 
       - name: Compress target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
-        run: tar cf targets.tar target/out/jvm/scala-3.8.3/sbt-lucuma-css target/out/jvm/scala-3.8.3/sbt-lucuma-docker target/out/jvm/scala-3.8.3/sbt-lucuma-lib target/out/jvm/scala-3.8.3/sbt-lucuma-app target/out/jvm/scala-3.8.3/sbt-lucuma project/target
+        run: tar cf targets.tar project/target target/out/jvm/scala-3.8.3/sbt-lucuma target/out/jvm/scala-3.8.3/sbt-lucuma-app target/out/jvm/scala-3.8.3/sbt-lucuma-css target/out/jvm/scala-3.8.3/sbt-lucuma-docker target/out/jvm/scala-3.8.3/sbt-lucuma-lib
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')

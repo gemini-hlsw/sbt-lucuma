@@ -153,7 +153,11 @@ object LucumaPlugin extends AutoPlugin {
       tlCiScalafixCheck            := true,
       tlCiDocCheck                 := false, // we are generating empty docs anyway
       tlCiDependencyGraphJob       := false,
-      githubWorkflowArtifactUpload := true
+      githubWorkflowArtifactUpload := true,
+      // sbt-typelevel collects the per-project target directories in whatever order sbt applied
+      // the project settings, which is not stable across machines. A locally generated ci.yml
+      // then fails githubWorkflowCheck with a diff whose two sides hold the same paths.
+      githubWorkflowGeneratedUploadSteps ~= sortTargetDirectories
     )
 
     // Dependency downloads in CI fail spuriously (connection resets from Maven Central). Two
@@ -229,6 +233,21 @@ object LucumaPlugin extends AutoPlugin {
     )
 
   }
+
+  private val TargetDirPrefixes = List("mkdir -p ", "tar cf targets.tar ")
+
+  private def sortTargetDirectories(steps: Seq[WorkflowStep]): Seq[WorkflowStep] =
+    steps.map {
+      case run: WorkflowStep.Run =>
+        run.withCommands(run.commands.map { cmd =>
+          TargetDirPrefixes.find(cmd.startsWith) match {
+            case Some(prefix) =>
+              prefix + cmd.drop(prefix.length).split(' ').sorted.mkString(" ")
+            case None         => cmd
+          }
+        })
+      case other                 => other
+    }
 
   // setup-java's own default globs for `cache: sbt`, plus the generated workflow. Passing the
   // input replaces the defaults, so they must be repeated here. They come from the `sbt` entry in
