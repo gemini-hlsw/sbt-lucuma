@@ -156,6 +156,12 @@ That error is a prompt, not a diagnosis: ask whether the task has side effects b
 reaching for the wrapper. If it does, `Def.uncached` is right. If it is genuinely pure and
 you want the caching, provide the `JsonFormat`.
 
+Redefining `compile` (to sequence `copyResources` ahead of a macro, say) hits this, and there
+the wrapper is free: sbt defines `compile := Def.uncached(compileTask.value)` itself, along with
+`compileIncremental`, `compileEarly`, `compileJava` and `compileScalaBackend`. `compile` is not
+task-cached for anyone; zinc's analysis store does the caching, and redefining the task does not
+disturb it.
+
 ### `Classpath` holds `HashedVirtualFileRef`, not `File`
 
 Anything doing I/O over a classpath needs to convert:
@@ -208,6 +214,30 @@ def devRunSetting(defaults: String*) =
 ```
 
 `bgRun` also lacks `reStart`'s kill-and-replace: calling it twice gives you two running jobs.
+
+### JVM options only apply when the server starts
+
+Same root cause, different symptom. `sbt -J-Xmx6g ...` on a *later* invocation is ignored: the
+thin client hands the command to a server that is already running, and that server booted with
+whatever options were in force at the time — the default 1GB heap if nothing set them.
+
+On CI this shows up as an `OutOfMemoryError` in a step whose command clearly asks for more:
+
+```
+[warn] ... [Heap: 0.00GB free of 1.00GB, max 1.00GB]
+java.lang.OutOfMemoryError: Java heap space
+```
+
+sbt-typelevel's `githubWorkflowSbtCommand := "sbt -J-Xmx6g"` is an sbt 1 idiom for this reason.
+Set the options for the whole workflow instead, so every step agrees:
+
+```scala
+ThisBuild / githubWorkflowEnv += ("SBT_OPTS" -> "-Xmx6g -Xss4M")
+ThisBuild / githubWorkflowSbtCommand := "sbt -v"
+```
+
+Locally the same job is done by `.jvmopts`, which is often gitignored — which is exactly why the
+failure appears on CI only.
 
 ### A forked process inherits the sbt *server's* environment
 
@@ -278,6 +308,37 @@ Two further traps:
 You do not have to fix the second one in your generated workflow: `LucumaWorkflowSyntaxPlugin`
 rewrites every `sbt` line in `.github/workflows/ci.yml` for you. Run
 `sbt githubWorkflowGenerate` and commit the result.
+
+### The generated target directories come out in a random order
+
+`githubWorkflowCheck` then fails on CI against a file you generated locally, with a diff whose
+two sides hold the same paths in a different order. sbt-typelevel accumulates them through
+`Global / internalTargetAggregation ++= Seq(target.value)` per project, so the order follows
+however sbt applied the project settings — not stable across machines.
+
+It is much more visible on sbt 2, because the unified `target/out/...` layout puts every path in
+these two lines. `LucumaPlugin` sorts them, so a lucuma build needs nothing. Anything else does
+it in the build, and both sides then agree:
+
+```scala
+ThisBuild / githubWorkflowGeneratedUploadSteps ~= { steps =>
+  val prefixes = List("mkdir -p ", "tar cf targets.tar ")
+  steps.map {
+    case run: WorkflowStep.Run =>
+      run.withCommands(run.commands.map { cmd =>
+        prefixes.find(cmd.startsWith) match {
+          case Some(prefix) =>
+            prefix + cmd.drop(prefix.length).split(' ').sorted.mkString(" ")
+          case None => cmd
+        }
+      })
+    case other => other
+  }
+}
+```
+
+`internalTargetAggregation` itself is private, but `githubWorkflowGeneratedUploadSteps` is a
+public setting, and the rewrite runs wherever generation runs — CI's check included.
 
 ## 5. Things that surface only at publish time
 
