@@ -49,6 +49,12 @@ you are pinning: `sbt-native-packager`, `sbt-header`, `sbt-scalafmt` (2.6.2 or l
 `sbt-scalafix`, `sbt-rewarn`, `sbt-buildinfo`, `sbt-updates`, `sbt-git`, `sbt-scalajs`,
 `sbt-scalajs-crossproject`. `sbt-bundlemon` does **not**, which is why sbt-lucuma dropped it.
 
+`addDependencyTreePlugin` is one you can simply delete. sbt 2 ships `dependencyTree` and
+`whatDependsOn` in core, so the common cases, reading the graph and hunting an eviction, need no
+plugin. The extras do not survive: `dependencyList`, `dependencyDot`, `dependencyStats`,
+`dependencyBrowseGraph` and `dependencyBrowseTree` are all gone, with no replacement for the
+browser views.
+
 `sbt-revolver` is the awkward one. The original `io.spray` artifact has no sbt 2 build, but
 [indoorvivants/sbt-revolver](https://github.com/indoorvivants/sbt-revolver) does and keeps the
 same API, so `reStart` / `reStop` / `reStartArgs` survive the switch. sbt-lucuma brings it in
