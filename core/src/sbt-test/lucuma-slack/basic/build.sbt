@@ -6,7 +6,7 @@ lazy val a = project.in(file("a"))
 lazy val checkGenerated = taskKey[Unit]("The workflow was written and reflects the settings")
 lazy val checkInCi      = taskKey[Unit]("The check runs in CI alongside the other config checks")
 
-ThisBuild / checkGenerated := {
+ThisBuild / checkGenerated := Def.uncached {
   val f = (ThisBuild / baseDirectory).value / ".github" / "workflows" / "ci-failure-slack.yml"
   if (!f.exists) sys.error(s"$f was not written")
   val text = IO.read(f)
@@ -18,7 +18,7 @@ ThisBuild / checkGenerated := {
   ).foreach(s => if (!text.contains(s)) sys.error(s"missing from the workflow: $s"))
 }
 
-ThisBuild / checkInCi := {
+ThisBuild / checkInCi := Def.uncached {
   val header = (ThisBuild / githubWorkflowBuild).value.collectFirst {
     case s: WorkflowStep.Sbt if s.name.exists(_.contains("Check headers")) => s.commands
   }.getOrElse(sys.error("no header-check step"))

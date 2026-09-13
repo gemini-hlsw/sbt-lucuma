@@ -21,7 +21,7 @@ object LucumaScalafmtPlugin extends AutoPlugin {
   import autoImport._
 
   override def projectSettings = Seq(
-    lucumaScalafmtGenerate := {
+    lucumaScalafmtGenerate := Def.uncached {
       val in = getClass.getResourceAsStream(commonConf)
       try
         IO.transfer(in, (ThisBuild / baseDirectory).value / s".$commonConf")
@@ -29,7 +29,7 @@ object LucumaScalafmtPlugin extends AutoPlugin {
         in.close()
 
     },
-    lucumaScalafmtCheck := {
+    lucumaScalafmtCheck    := Def.uncached {
       val actual = {
         val src = Source.fromFile((ThisBuild / baseDirectory).value / s".$commonConf")
         try

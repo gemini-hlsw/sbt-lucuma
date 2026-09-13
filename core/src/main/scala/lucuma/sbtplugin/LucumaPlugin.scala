@@ -10,8 +10,8 @@ import org.typelevel.sbt.*
 import org.typelevel.sbt.gha.GenerativePlugin
 import org.typelevel.sbt.gha.GitHubActionsPlugin
 import org.typelevel.sbt.mergify.MergifyPlugin
-import sbt.*
 import sbt.Keys.*
+import sbt.{*, given}
 import sbtheader.AutomateHeaderPlugin
 import sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
@@ -60,6 +60,12 @@ object LucumaPlugin extends AutoPlugin {
       Compile / doc / sources := Seq.empty
     )
 
+    // Under sbt 2 `src_managed` sits inside the project's output directory, so a generated
+    // source reaches the mappings by both routes and the zip rejects the duplicate entry.
+    lazy val lucumaPackageSettings = Seq(
+      Compile / packageSrc / mappings ~= (_.distinct)
+    )
+
     lazy val lucumaHeaderSettings = Seq(
       headerMappings := headerMappings.value + (HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment),
       headerLicense  := Some(
@@ -74,27 +80,27 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaPublishSettings = Seq(
       organization     := "edu.gemini",
       organizationName := "Association of Universities for Research in Astronomy, Inc. (AURA)",
-      licenses += (("BSD-3-Clause", url("https://opensource.org/licenses/BSD-3-Clause"))),
+      licenses += (("BSD-3-Clause", uri("https://opensource.org/licenses/BSD-3-Clause"))),
       developers       := List(
-        Developer("cquiroz", "Carlos Quiroz", "cquiroz@gemini.edu", url("https://www.gemini.edu")),
-        Developer("jluhrs", "Javier Lührs", "jluhrs@gemini.edu", url("https://www.gemini.edu")),
+        Developer("cquiroz", "Carlos Quiroz", "cquiroz@gemini.edu", uri("https://www.gemini.edu")),
+        Developer("jluhrs", "Javier Lührs", "jluhrs@gemini.edu", uri("https://www.gemini.edu")),
         Developer("sraaphorst",
                   "Sebastian Raaphorst",
                   "sraaphorst@gemini.edu",
-                  url("https://www.gemini.edu")
+                  uri("https://www.gemini.edu")
         ),
-        Developer("swalker2m", "Shane Walker", "swalker@gemini.edu", url("https://www.gemini.edu")),
-        Developer("tpolecat", "Rob Norris", "rnorris@gemini.edu", url("https://www.tpolecat.org")),
-        Developer("rpiaggio", "Raúl Piaggio", "rpiaggio@gemini.edu", url("https://www.gemini.edu")),
+        Developer("swalker2m", "Shane Walker", "swalker@gemini.edu", uri("https://www.gemini.edu")),
+        Developer("tpolecat", "Rob Norris", "rnorris@gemini.edu", uri("https://www.tpolecat.org")),
+        Developer("rpiaggio", "Raúl Piaggio", "rpiaggio@gemini.edu", uri("https://www.gemini.edu")),
         Developer("toddburnside",
                   "Todd Burnside",
                   "tburnside@gemini.edu",
-                  url("https://www.gemini.edu")
+                  uri("https://www.gemini.edu")
         ),
         Developer("hugo-vrijswijk",
                   "Hugo van Rijswijjk",
                   "hugovr@castor-it.nl",
-                  url("https://www.gemini.edu")
+                  uri("https://www.gemini.edu")
         )
       )
     )
@@ -145,7 +151,11 @@ object LucumaPlugin extends AutoPlugin {
       tlCiScalafixCheck            := true,
       tlCiDocCheck                 := false, // we are generating empty docs anyway
       tlCiDependencyGraphJob       := false,
-      githubWorkflowArtifactUpload := true
+      githubWorkflowArtifactUpload := true,
+      // sbt-typelevel collects the per-project target directories in whatever order sbt applied
+      // the project settings, which is not stable across machines. A locally generated ci.yml
+      // then fails githubWorkflowCheck with a diff whose two sides hold the same paths.
+      githubWorkflowGeneratedUploadSteps ~= sortTargetDirectories
     )
 
     lazy val lucumaGitSettings = Seq(
@@ -189,10 +199,20 @@ object LucumaPlugin extends AutoPlugin {
 
   }
 
-  private val primaryJavaCond = Def.setting {
-    val java = githubWorkflowJavaVersions.value.head
-    s"matrix.java == '${java.render}'"
-  }
+  private val TargetDirPrefixes = List("mkdir -p ", "tar cf targets.tar ")
+
+  private def sortTargetDirectories(steps: Seq[WorkflowStep]): Seq[WorkflowStep] =
+    steps.map {
+      case run: WorkflowStep.Run =>
+        run.withCommands(run.commands.map { cmd =>
+          TargetDirPrefixes.find(cmd.startsWith) match {
+            case Some(prefix) =>
+              prefix + cmd.drop(prefix.length).split(' ').sorted.mkString(" ")
+            case None         => cmd
+          }
+        })
+      case other                 => other
+    }
 
   private val hasDockerComposeYml = Def.setting {
     file("docker-compose.yml").exists()
@@ -228,11 +248,11 @@ object LucumaPlugin extends AutoPlugin {
       commandAliasSettings
 
   override val projectSettings =
-    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaPackageSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
 
-  lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
+  lazy val commandAliasSettings: Seq[Setting[?]] = commandAliasSettings(Nil)
 
-  def commandAliasSettings(extra: List[String]): Seq[Setting[_]] = Seq(
+  def commandAliasSettings(extra: List[String]): Seq[Setting[?]] = Seq(
     GlobalScope / tlCommandAliases += {
       val command =
         List(

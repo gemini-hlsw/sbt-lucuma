@@ -6,9 +6,14 @@ package lucuma.sbtplugin
 import buildinfo.BuildInfo.HerokuAgentVersion
 import com.typesafe.sbt.packager.Keys.*
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
+import com.typesafe.sbt.packager.debian.DebianPlugin.autoImport.Debian
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
+import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.Linux
+import com.typesafe.sbt.packager.rpm.RpmPlugin.autoImport.Rpm
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.Universal
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.UniversalDocs
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.UniversalSrc
 import sbt.*
 import sbt.Keys.*
 
@@ -52,6 +57,24 @@ object LucumaDockerPlugin extends AutoPlugin {
 
   import autoImport.*
 
+  override lazy val globalSettings = Seq(
+    excludeLintKeys ++= Set(
+      Debian / daemonGroup,
+      Debian / daemonGroupGid,
+      Debian / daemonUser,
+      Debian / daemonUserUid,
+      Debian / executableScriptName,
+      Linux / javaOptions,
+      Rpm / daemonGroupGid,
+      Rpm / daemonUserUid,
+      Rpm / executableScriptName,
+      Rpm / name,
+      Universal / executableScriptName,
+      UniversalDocs / name,
+      UniversalSrc / name
+    )
+  )
+
   override lazy val buildSettings = Seq(
     lucumaDockerDefaultMaxHeap := 512,
     lucumaDockerMinHeap        := 256,
@@ -79,17 +102,23 @@ object LucumaDockerPlugin extends AutoPlugin {
     ),
     dockerUpdateLatest              := true,
     dockerUsername                  := Some("noirlab"),
-    Docker / mappings               := (Docker / mappings).value ++ {
-      if (lucumaDockerUseHerokuAgent.value) {
-        val tmpDir: File  = target.value / HerokuAgentTempTargetDir
-        tmpDir.mkdirs()
-        val tmpFile: File = tmpDir / HerokuAgentFilename
-        cleanFiles ++= Seq(tmpFile, tmpDir)
-        val status: Int   = url(HerokuAgentUrl) #> tmpFile !
+    Docker / mappings               := Def.uncached {
+      (Docker / mappings).value ++ {
+        if (lucumaDockerUseHerokuAgent.value) {
+          val conv          = fileConverter.value
+          val tmpDir: File  = target.value / HerokuAgentTempTargetDir
+          tmpDir.mkdirs()
+          val tmpFile: File = tmpDir / HerokuAgentFilename
+          val status: Int   = (uri(HerokuAgentUrl).toURL #> tmpFile).!
 
-        if (status > 0) throw new RuntimeException(s"Failed to download $HerokuAgentUrl")
-        else Seq(tmpFile -> s"${(Docker / defaultLinuxInstallLocation).value}/$HerokuAgentFilename")
-      } else Seq.empty
+          if (status > 0) throw new RuntimeException(s"Failed to download $HerokuAgentUrl")
+          else
+            Seq(
+              conv.toVirtualFile(tmpFile.toPath) ->
+                s"${(Docker / defaultLinuxInstallLocation).value}/$HerokuAgentFilename"
+            )
+        } else Seq.empty
+      }
     },
     // No javadocs
     Compile / packageDoc / mappings := Seq(),
@@ -138,7 +167,7 @@ object LucumaDockerPlugin extends AutoPlugin {
       ) ++
         Source
           .fromInputStream(getClass.getResourceAsStream("docker-set-memory.sh"))
-          .getLines
+          .getLines()
           .toSeq
   )
 

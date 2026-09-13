@@ -3,6 +3,12 @@
 > checkInCi
 > lucumaSlackNotifyCheck
 
+# a second run with identical inputs must still write the file: sbt 2 caches every task result
+# and would otherwise return the cached one without repeating the side effect
+$ delete .github/workflows/ci-failure-slack.yml
+> lucumaSlackNotifyGenerate
+$ exists .github/workflows/ci-failure-slack.yml
+
 # turning it off removes the file
 > set ThisBuild / lucumaSlackNotify := false
 > lucumaSlackNotifyGenerate

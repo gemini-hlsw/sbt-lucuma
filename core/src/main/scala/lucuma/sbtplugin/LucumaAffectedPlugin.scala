@@ -87,7 +87,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
      *   by id, so it is indifferent to whether this one ran.
      */
     def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
-      val cond = lucumaAffectedCond(project, more: _*)
+      val cond = lucumaAffectedCond(project, more*)
       job
         .withNeeds((job.needs :+ lucumaAffectedJobId).distinct)
         .withCond(Some(job.cond.fold(cond)(existing => s"($existing) && $cond")))
@@ -100,7 +100,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = allRequirements
 
-  override val buildSettings: Seq[Setting[_]] = Seq(
+  override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaAffectedTests        := true,
     lucumaAffectedAlwaysPaths  := AffectedProjects.DefaultAlwaysPaths,
     lucumaAffectedIgnorePaths  := AffectedProjects.DefaultIgnorePaths,
@@ -109,7 +109,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
       .filter(_.nonEmpty)
       .orElse(sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty).map("origin/" + _))
       .orElse(sys.env.get(PushBaseEnv).filter(isCommit)),
-    lucumaAffectedChangedFiles := {
+    lucumaAffectedChangedFiles := Def.uncached {
       val log = streams.value.log
       (ThisBuild / lucumaAffectedBaseRef).value match {
         case None       =>
@@ -119,8 +119,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
           changedFiles((ThisBuild / baseDirectory).value, base, log)
       }
     },
-    lucumaAffectedProjects     := planTask.value.projects,
-    lucumaAffectedReport       := {
+    lucumaAffectedProjects     := Def.uncached(planTask.value.projects),
+    lucumaAffectedReport       := Def.uncached {
       val result = planTask.value
       streams.value.log.info(s"[affected] projects: ${result.projects.mkString(", ")}")
 
@@ -339,7 +339,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
   /** `None` means we could not compute a diff, which the caller turns into a full build. */
   private def changedFiles(root: File, base: String, log: Logger): Option[Seq[String]] = {
     def git(args: String*): Option[Seq[String]] =
-      Try(Process("git" +: args, root).lineStream_!(nullLogger).toList).toOption
+      Try(Process("git" +: args, root).lazyLines_!(nullLogger).toList).toOption
 
     git("diff", "--name-only", "--no-renames", s"$base...HEAD") match {
       case None        =>
