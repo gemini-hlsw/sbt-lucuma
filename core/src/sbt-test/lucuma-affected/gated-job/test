@@ -1,5 +1,8 @@
 > checkGate
 
+# a push build has no GITHUB_BASE_REF; this is how it finds a base anyway
+> checkDefaultBranchEnv
+
 # a build supplying its own `affected` job doesn't get a second one
 > set ThisBuild / githubWorkflowAddedJobs += WorkflowJob("affected", "Affected Projects", List(WorkflowStep.Run(List("echo mine"))))
 > checkNoDuplicate

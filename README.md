@@ -134,7 +134,7 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 | `lucumaAffectedTests`       | `true`                                                                                      | Set to `false` to always run the full suite.                                                                       |
 | `lucumaAffectedAlwaysPaths` | see above                                                                                   | Globs that trigger a full run.                                                                                     |
 | `lucumaAffectedIgnorePaths` | see above                                                                                   | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
-| `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF`, else the previous commit on a push | What to diff against. `None` runs everything.                                                                      |
+| `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` on a PR, else `origin/<default branch>` on a push to any other branch, else the previous commit. Never set on a tag. | What to diff against. `None` runs everything.                                                                      |
 
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
 not `core/src/sbt-test/foo/build.sbt`.
@@ -174,11 +174,21 @@ Both read `needs.affected.outputs.projects`, published by a generated `affected`
 costs an sbt boot, so it's only generated once something depends on it — adding
 `lucumaAffectedJobId` to a `needs` list is what brings it into being.
 
-On a merge to `main` that job diffs against the previous `main` (`github.event.before`) rather than
-falling back to "everything", so a merge that can't reach an app doesn't redeploy it. The test run
-does **not** do this: `lucumaTestAffected` sees no base ref on a push and runs the full suite, which
-is the backstop for everything the dependency graph can't see. A first push or a force-push gives no
-usable commit, and then both fall back to running everything.
+GitHub fires CI twice for a commit on a branch with an open PR, once for each event, so what a push
+run diffs against matters as much as a PR run does:
+
+- **Push to any non-default branch.** Both the `affected` job and `lucumaTestAffected` diff against
+  `origin/<default branch>`, so the push run narrows the same way its `pull_request` counterpart
+  does instead of running everything. A stacked PR, one targeting another branch rather than the
+  default, is still measured against the default branch, so its push run sees the parent branch's
+  changes too and over-tests.
+- **Merge to `main`.** The `affected` job diffs against the previous `main`
+  (`github.event.before`), so a merge that can't reach an app doesn't redeploy it. The test run
+  does **not**: `lucumaTestAffected` has no base ref there and runs the full suite, which is the
+  backstop for everything the dependency graph can't see. A first push or a force-push gives no
+  usable commit, and then both fall back to running everything.
+- **Tags.** Never narrowed. A tag points into a branch, so diffing against it would find nothing
+  changed and publish an untested release.
 
 | Task                   | Description                                                                                 |
 | ---------------------- | ------------------------------------------------------------------------------------------- |

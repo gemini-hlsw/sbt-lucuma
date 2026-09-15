@@ -21,8 +21,13 @@ import AffectedProjects.ProjectInfo
  * The dependency graph is sbt's own (`buildDependencies`), so nothing has to be mirrored in YAML:
  * changed files are mapped onto projects by source/resource directory, then expanded over the
  * reverse dependency closure. It fails open -- a change we cannot attribute to a project runs
- * everything -- and only narrows when there is a base ref to diff against, so pushes to `main`
- * always get the full suite.
+ * everything -- and only narrows when there is a base ref to diff against. On a `pull_request` that
+ * is the branch being merged into; on a push to any non-default branch it is the default branch. So
+ * for a pull request targeting the default branch, the two runs GitHub fires for the same commit
+ * see the same diff, instead of the push one testing everything. A stacked pull request is the
+ * exception: its push run has no target-branch metadata and is measured against the default branch,
+ * a superset of what its `pull_request` run sees. Pushes to the default branch itself, and tags,
+ * still get the full suite.
  */
 object LucumaAffectedPlugin extends AutoPlugin {
 
@@ -101,15 +106,11 @@ object LucumaAffectedPlugin extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
 
   override val buildSettings: Seq[Setting[_]] = Seq(
-    lucumaAffectedTests        := true,
-    lucumaAffectedAlwaysPaths  := AffectedProjects.DefaultAlwaysPaths,
-    lucumaAffectedIgnorePaths  := AffectedProjects.DefaultIgnorePaths,
-    lucumaAffectedBaseRef      := sys.env
-      .get("LUCUMA_AFFECTED_BASE")
-      .filter(_.nonEmpty)
-      .orElse(sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty).map("origin/" + _))
-      .orElse(sys.env.get(PushBaseEnv).filter(isCommit)),
-    lucumaAffectedChangedFiles := {
+    lucumaAffectedTests                                    := true,
+    lucumaAffectedAlwaysPaths                              := AffectedProjects.DefaultAlwaysPaths,
+    lucumaAffectedIgnorePaths                              := AffectedProjects.DefaultIgnorePaths,
+    lucumaAffectedBaseRef                                  := AffectedProjects.baseRef(sys.env),
+    lucumaAffectedChangedFiles                             := {
       val log = streams.value.log
       (ThisBuild / lucumaAffectedBaseRef).value match {
         case None       =>
@@ -119,8 +120,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
           changedFiles((ThisBuild / baseDirectory).value, base, log)
       }
     },
-    lucumaAffectedProjects     := planTask.value.projects,
-    lucumaAffectedReport       := {
+    lucumaAffectedProjects                                 := planTask.value.projects,
+    lucumaAffectedReport                                   := {
       val result = planTask.value
       streams.value.log.info(s"[affected] projects: ${result.projects.mkString(", ")}")
 
@@ -135,10 +136,19 @@ object LucumaAffectedPlugin extends AutoPlugin {
       }
     },
     commands += testAffected,
+    // Workflow-wide, unlike PushBaseEnv: this is a branch *name*, not a base commit, and
+    // `AffectedProjects.baseRef` ignores it on the default branch and on tags. So hoisting it
+    // cannot narrow the runs that are meant to stay exhaustive, and every job -- including ones a
+    // consuming build writes by hand -- resolves the same base off it. What each job then reports
+    // still differs where it is meant to: on a push to the default branch only the `affected` job
+    // carries PushBaseEnv, so it narrows while the build job runs the full suite.
+    githubWorkflowEnv += AffectedProjects.DefaultBranchEnv -> gha(
+      "github.event.repository.default_branch"
+    ),
     // Rewrite the generated job rather than `githubWorkflowBuild`, because TypelevelCiJSPlugin
     // finds its own insertion point by matching `commands == List("test")`. Renaming the command
     // any earlier makes that match fail and silently drops the scalaJSLink step.
-    githubWorkflowGeneratedCI  := {
+    githubWorkflowGeneratedCI                              := {
       val jobs     = githubWorkflowGeneratedCI.value
       val narrowed = if (lucumaAffectedTests.value) jobs.map(narrowTestStep) else jobs
       // The extra job costs an sbt boot, so only generate it once something gates on it -- and
@@ -167,15 +177,12 @@ object LucumaAffectedPlugin extends AutoPlugin {
   }
 
   /**
-   * Set on the `affected` job only, from `github.event.before`, so a merge to `main` is measured
-   * against the previous `main` rather than falling back to "everything". Deliberately absent from
-   * the build job: tests on `main` stay exhaustive, which is the backstop for everything the
-   * dependency graph can't see.
+   * Set on the `affected` job only, from `github.event.before`, so a merge to the default branch is
+   * measured against its previous tip rather than falling back to "everything". Deliberately absent
+   * from the build job: tests on the default branch stay exhaustive, which is the backstop for
+   * everything the dependency graph can't see.
    */
-  private val PushBaseEnv = "LUCUMA_AFFECTED_PUSH_BASE"
-
-  /** Actions sends all zeroes for a branch's first push, and nothing for a deleted ref. */
-  private def isCommit(sha: String): Boolean = sha.nonEmpty && sha.exists(_ != '0')
+  private val PushBaseEnv = AffectedProjects.PushBaseEnv
 
   /** GitHub Actions expression syntax collides with Scala interpolation; build it instead. */
   private def gha(expr: String): String = "$" + s"{{ $expr }}"
