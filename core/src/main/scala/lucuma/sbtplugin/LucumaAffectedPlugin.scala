@@ -22,9 +22,12 @@ import AffectedProjects.ProjectInfo
  * changed files are mapped onto projects by source/resource directory, then expanded over the
  * reverse dependency closure. It fails open -- a change we cannot attribute to a project runs
  * everything -- and only narrows when there is a base ref to diff against. On a `pull_request` that
- * is the branch being merged into; on a push to any non-default branch it is the default branch, so
- * the two runs GitHub fires for the same commit see the same diff. Pushes to the default branch
- * itself, and tags, still get the full suite.
+ * is the branch being merged into; on a push to any non-default branch it is the default branch. So
+ * for a pull request targeting the default branch, the two runs GitHub fires for the same commit
+ * see the same diff, instead of the push one testing everything. A stacked pull request is the
+ * exception: its push run has no target-branch metadata and is measured against the default branch,
+ * a superset of what its `pull_request` run sees. Pushes to the default branch itself, and tags,
+ * still get the full suite.
  */
 object LucumaAffectedPlugin extends AutoPlugin {
 
@@ -136,7 +139,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
     // Workflow-wide, unlike PushBaseEnv: this is a branch *name*, not a base commit, and
     // `AffectedProjects.baseRef` ignores it on the default branch and on tags. So hoisting it
     // cannot narrow the runs that are meant to stay exhaustive, and every job -- including ones a
-    // consuming build writes by hand -- gets the same answer out of `lucumaAffectedProjects`.
+    // consuming build writes by hand -- resolves the same base off it. What each job then reports
+    // still differs where it is meant to: on a push to the default branch only the `affected` job
+    // carries PushBaseEnv, so it narrows while the build job runs the full suite.
     githubWorkflowEnv += AffectedProjects.DefaultBranchEnv -> gha(
       "github.event.repository.default_branch"
     ),

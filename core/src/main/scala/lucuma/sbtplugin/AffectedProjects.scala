@@ -80,9 +80,12 @@ private[sbtplugin] object AffectedProjects {
    * The order is most-specific first:
    *   1. an explicit [[BaseEnv]], which always wins;
    *   1. `GITHUB_BASE_REF`, set only on `pull_request` events, naming the branch being merged into;
-   *   1. the default branch, for a push to any *other* branch -- this is what makes a push build
-   *      see the same diff its pull_request counterpart sees, instead of falling back to
-   *      "everything" because no base ref was supplied;
+   *   1. the default branch, for a push to any *other* branch -- this is what stops a push build
+   *      falling back to "everything" for want of a base ref. For the usual pull request, one
+   *      targeting the default branch, that is the same diff its `pull_request` counterpart sees. A
+   *      stacked pull request targeting some other branch is the exception: the push event carries
+   *      no target-branch metadata, so it is still measured against the default branch and sees the
+   *      parent branch's changes too. That over-tests rather than under-tests;
    *   1. [[PushBaseEnv]], which is how a push to the default branch itself gets a base.
    *
    * Tags are never narrowed: a release gets the full suite.
