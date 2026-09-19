@@ -7,7 +7,7 @@ val sbtTypelevelVersion      = "0.8.7" // Update in build.sbt as well
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-settings"   % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-ci-release" % sbtTypelevelVersion)
 addSbtPlugin("org.typelevel"    % "sbt-typelevel-mergify"    % sbtTypelevelVersion)
-addSbtPlugin("com.github.sbt"   % "sbt-native-packager"      % "1.11.7")
+addSbtPlugin("com.github.sbt"   % "sbt-native-packager"      % "1.12.0")
 addSbtPlugin("com.github.sbt"   % "sbt-header"               % "5.11.0")
 addSbtPlugin("org.scalameta"    % "sbt-scalafmt"             % "2.6.2")
 addSbtPlugin("ch.epfl.scala"    % "sbt-scalafix"             % "0.14.9")
