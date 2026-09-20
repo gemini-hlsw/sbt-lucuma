@@ -372,10 +372,11 @@ Collects CSS assets (from both the classpath and dependency jars) into the targe
 as part of the linking step, so stylesheets shipped inside lucuma libraries end up alongside
 the linked JS.
 
-| Key                       | Description                                                                 |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `lucumaCss` (task)        | Copy CSS into `target/lucuma-css`; hooked into `fastLinkJS` / `fullLinkJS`. |
-| `lucumaCssExts` (setting) | File extensions treated as CSS (default `css`, `scss`, `saas`).             |
+| Key                                  | Description                                                                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `lucumaCss` (task)                   | Copy CSS into `lucumaCssOutputDirectory`; hooked into `fastLinkJS` / `fullLinkJS`.                                                   |
+| `lucumaCssExts` (setting)            | File extensions treated as CSS (default `css`, `scss`, `saas`).                                                                     |
+| `lucumaCssOutputDirectory` (setting) | Where the CSS goes. Defaults to `target.value / "lucuma-css"`, which on sbt 2 embeds the Scala version; set a stable path for bundlers. |
 
 ---
 
