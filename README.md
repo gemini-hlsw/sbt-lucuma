@@ -145,8 +145,7 @@ The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 
 Rewrites the `sbt` invocations in the generated workflow so they parse under sbt 2, which
 rejects `sbt a b c` and mis-reads `sbt '++ 3' foo --bar`. Each step becomes a single
-`;`-separated argument with the `++` folded in, and the broken `scalafixAll --check` step
-becomes `scalafix --check; Test/scalafix --check`.
+`;`-separated argument with the `++` folded in.
 
 It runs after every other lucuma plugin that rewrites the generated CI, because those match
 on a step's individual commands, which no longer exist once they have been joined.

@@ -300,10 +300,9 @@ Two further traps:
 
 - **`test` is incremental now** (it is the old `testQuick`) and its success is cached by
   content hash, surviving `clean`. `testFull` is the old always-run-everything `test`.
-- **`scalafixAll` is gone.** Run `scalafix` and `Test / scalafix` separately:
-  `sbt "++ 3; scalafix --check; Test/scalafix --check"`.
 - **`sbt '++ 3' foo --bar` is broken** — the aggregated project keys get passed to `foo` as
-  arguments. Fold the `++` into the sequence instead: `sbt "++ 3; foo --bar"`.
+  arguments. Fold the `++` into the sequence instead: `sbt "++ 3; foo --bar"`. This is what
+  made `scalafixAll --check` look broken; the key itself is fine.
 
 You do not have to fix the second one in your generated workflow: `LucumaWorkflowSyntaxPlugin`
 rewrites every `sbt` line in `.github/workflows/ci.yml` for you. Run

@@ -71,7 +71,7 @@ jobs:
 
       - name: Check scalafix lints
         if: matrix.java == 'temurin@25' && matrix.os == 'ubuntu-22.04'
-        run: sbt '++ ${{ matrix.scala }}; scalafix --check; Test/scalafix --check'
+        run: sbt '++ ${{ matrix.scala }}; scalafixAll --check'
 
       - name: Test affected projects
         run: sbt '++ ${{ matrix.scala }}; lucumaTestAffected'

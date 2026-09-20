@@ -29,19 +29,9 @@ object LucumaWorkflowSyntaxPlugin extends AutoPlugin {
 
   override val buildSettings: Seq[Setting[?]] = Seq(
     githubWorkflowGeneratedCI := githubWorkflowGeneratedCI.value.map { job =>
-      job.withSteps(job.steps.map(fixScalafixCheck).map(joinCommands(job.sbtStepPreamble)))
+      job.withSteps(job.steps.map(joinCommands(job.sbtStepPreamble)))
     }
   )
-
-  /**
-   * `scalafixAll` mis-parses its arguments under sbt 2, reporting the aggregated project keys as
-   * unknown rules. The root `scalafix` key aggregates just as widely, one config at a time.
-   */
-  private def fixScalafixCheck(step: WorkflowStep): WorkflowStep = step match {
-    case s: WorkflowStep.Sbt if s.commands == List("scalafixAll --check") =>
-      copyWithCommands(s, List("scalafix --check", "Test/scalafix --check"), s.preamble)
-    case other                                                            => other
-  }
 
   private def joinCommands(preamble: List[String])(step: WorkflowStep): WorkflowStep =
     step match {
