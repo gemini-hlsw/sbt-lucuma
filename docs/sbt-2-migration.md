@@ -250,6 +250,58 @@ variable is right in front of you and wrong in the running process. `project/tar
 names the socket of the server in use. Kill it, or `shutdown`, after changing anything the
 application reads from the environment.
 
+### An environment lookup in `build.sbt` may read nothing at all
+
+Worse than the stale-environment case above, and the one that actually costs money. The build
+DSL runs **inside the server**, so `sys.env` there is not reading the environment of the `sbt`
+command you just typed. In lucuma-odb's CI it read nothing: `System.getenv` came back `null` for
+a variable the workflow step demonstrably set.
+
+The failure is silent and green. Anything gated this way simply takes its default:
+
+- `sbt-test-shards` never saw `TEST_SHARD`, so all **eight** shards fell back to "shard 0 of 1"
+  and each ran the entire suite. Eight runners, identical work, no parallelism, every job
+  passing.
+- A suite skipped unless `RUN_LEGACY_TESTS=true` was never enabled, so the nightly job ran zero
+  tests and reported success.
+
+Pass anything the build must read as a **system property** through `SBT_OPTS`, which the
+launcher applies to the server JVM as it starts — the same route the heap settings already take:
+
+```yaml
+SBT_OPTS: '-Xmx6g -Dtest.shard=${{ matrix.shard }} -Dtest.shard.count=8'
+```
+
+and read it with `sys.props.get`.
+
+**Set it on the job, never on one step.** The properties belong to the server, and the server
+takes them from whichever `sbt` invocation happens to start it — which is rarely the step you
+care about. lucuma-odb put the shard on its test step and it changed nothing: `sbt update` runs
+six steps earlier, so by the time the tests ran they were talking to a server that had never
+seen the flag. Every shard reported `#0` and ran all 472 suites, while its own step's
+`SBT_OPTS` sat there visibly correct in the log.
+
+Where the value comes from the matrix, workflow-level `env` cannot see it, so put it on the job:
+
+```scala
+ThisBuild / githubWorkflowGeneratedCI ~= {
+  _.map { job =>
+    if (job.id == "build")
+      job.withEnv(job.env + ("SBT_OPTS" -> s"-Xmx6g -Dtest.shard=$${{ matrix.shard }}"))
+    else job
+  }
+}
+```
+
+Repeat the heap flags there, because a job-level value replaces the workflow-level one.
+
+Test code is a separate problem. It runs in a forked JVM, which inherits the *server's*
+environment and does not inherit the server's system properties, so neither half of this reaches
+it. Use `Test / envVars` or `Test / javaOptions` for that.
+
+**How to tell whether a gate is live.** Never by the job's status; it stays green either way.
+Read the test counts (`Passed: Total N`) or log the value you branched on.
+
 ### `test` is an `InputTask`
 
 You can no longer write `Test / test := somethingElse.value`. If you were using that to hook
