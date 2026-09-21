@@ -96,6 +96,20 @@ lazy val root = project
   .aggregate(core, app)
 ```
 
+**Declare that root project even if nothing forces you to.** A synthesised root takes its id
+from the *checkout directory*, so the same build is `lucuma-odb-root` in a normal clone and
+`sbt2-root` in a worktree, and that name leaks into the generated CI target paths. Worse, MiMa
+auto-enables on it and asks for a previous release of an artifact no release publishes:
+
+```
+[error] Error downloading edu.gemini:lucuma-odb-root_3:0.96.0
+```
+
+That surfaces in CI, long after the port loads cleanly, and reads like a publishing problem
+rather than a missing root. `NoPublishPlugin` empties `mimaPreviousArtifacts` and settles both.
+The cost is writing out the `aggregate` list, and omitting a module there silently drops it from
+`compile` and `test`, so check `sbt projects` counts the same number before and after.
+
 `ThisBuild / ...` still works and is still the right scope for sbt-typelevel's keys
 (`tlBaseVersion`, `crossScalaVersions`, and friends).
 
