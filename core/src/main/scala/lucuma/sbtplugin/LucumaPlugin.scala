@@ -16,6 +16,8 @@ import sbtheader.AutomateHeaderPlugin
 import sbtheader.HeaderPlugin
 import scalafix.sbt.ScalafixPlugin
 
+import scala.concurrent.duration.*
+
 object LucumaPlugin extends AutoPlugin {
 
   import GenerativePlugin.autoImport._
@@ -148,6 +150,37 @@ object LucumaPlugin extends AutoPlugin {
       githubWorkflowArtifactUpload := true
     )
 
+    // Dependency downloads in CI fail spuriously (connection resets from Maven Central). Two
+    // defenses, both aimed at the same failure:
+    //
+    // 1. `setup-java` keys its sbt cache on the build files alone, so any other workflow in the
+    //    repo that also uses `cache: sbt` (an npm publish, a nightly) races CI to save the key. A
+    //    short job that only resolves one project wins that race and saves a partial cache; CI then
+    //    gets a cache hit, skips `sbt +update`, and downloads the rest mid-test, exposed to the
+    //    network. Hashing ci.yml along with the build files gives CI a key of its own.
+    // 2. Downloads that do happen retry more before giving up. Coursier's own defaults are 3
+    //    resolution attempts 1s apart and 5 download attempts.
+    lazy val lucumaDependencyCacheSettings = Seq(
+      githubWorkflowJobSetup ~= {
+        _.map {
+          case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
+            step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
+          case step                                                  => step
+        }
+      },
+      // Append rather than replace: a build may already carry SBT_OPTS (heap, proxies).
+      githubWorkflowEnv ~= { env =>
+        val retry = s"-D$CoursierDownloadRetryProperty=$CoursierDownloadRetries"
+        env.updated("SBT_OPTS", (env.get("SBT_OPTS").toList :+ retry).mkString(" "))
+      }
+    )
+
+    lazy val lucumaResolutionRetrySettings = Seq(
+      csrConfiguration := csrConfiguration.value.withRetry(
+        Some((CoursierResolutionRetryDelay, CoursierResolutionRetries))
+      )
+    )
+
     lazy val lucumaGitSettings = Seq(
       useConsoleForROGit        := (baseDirectory.value / ".git").isFile,
       git.gitUncommittedChanges := {
@@ -189,6 +222,34 @@ object LucumaPlugin extends AutoPlugin {
 
   }
 
+  // setup-java's own default globs for `cache: sbt`, plus the generated workflow. Passing the
+  // input replaces the defaults, so they must be repeated here. They come from the `sbt` entry in
+  // setup-java's cache.ts (pinned to a release, `main` may have moved):
+  // https://github.com/actions/setup-java/blob/v5.7.0/src/cache.ts#L108-L113
+  private val SbtCacheDependencyPath: String =
+    List(
+      "**/*.sbt",
+      "**/project/build.properties",
+      "**/project/**.scala",
+      "**/project/**.sbt",
+      ".github/workflows/ci.yml"
+    ).mkString("\n")
+
+  private def isSbtCachingSetupJava(step: WorkflowStep.Use): Boolean =
+    step.ref match {
+      case UseRef.Public("actions", "setup-java", _) => step.params.get("cache").contains("sbt")
+      case _                                         => false
+    }
+
+  private val CoursierResolutionRetries: Int               = 10
+  private val CoursierResolutionRetryDelay: FiniteDuration = 5.seconds
+  private val CoursierDownloadRetries: Int                 = 10
+
+  // sbt ships a shaded coursier, so the unshaded `coursier.exception-retry` is ignored. This is
+  // read as a system property only, hence SBT_OPTS rather than a plain env var.
+  private val CoursierDownloadRetryProperty: String =
+    "lmcoursier.internal.shaded.coursier.exception-retry"
+
   private val primaryJavaCond = Def.setting {
     val java = githubWorkflowJavaVersions.value.head
     s"matrix.java == '${java.render}'"
@@ -222,13 +283,15 @@ object LucumaPlugin extends AutoPlugin {
       lucumaScalacSettings ++
       lucumaPublishSettings ++
       lucumaCiSettings ++
+      lucumaDependencyCacheSettings ++
       lucumaDockerComposeSettings ++
       lucumaStewardSettings ++
       lucumaGitSettings ++
       commandAliasSettings
 
   override val projectSettings =
-    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++ AutomateHeaderPlugin.projectSettings
+    lucumaDocSettings ++ lucumaHeaderSettings ++ lucumaScalacProjectSettings ++
+      lucumaResolutionRetrySettings ++ AutomateHeaderPlugin.projectSettings
 
   lazy val commandAliasSettings: Seq[Setting[_]] = commandAliasSettings(Nil)
 

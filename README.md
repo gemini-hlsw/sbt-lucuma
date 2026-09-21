@@ -41,6 +41,11 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
 - **CI:** fatal warnings in CI, `evictionErrorLevel` fatal in CI / relaxed locally,
   header + scalafmt + scalafix checks wired into the workflow, Mergify config, doc/dependency
   jobs disabled.
+- **Dependency downloads in CI:** the sbt cache key includes `ci.yml`, so another workflow in the
+  repo using `cache: sbt` (an npm publish, a nightly) cannot save a partial cache under CI's key
+  and leave CI downloading mid-test; other workflows read the cache as shown below. Coursier
+  retries harder before failing: 10 resolution attempts 5s apart (`csrConfiguration`) and 10
+  download attempts (`SBT_OPTS` in the workflow).
 - **Headers:** BSD-3-Clause C++-style line-comment header, applied automatically
   (`AutomateHeaderPlugin`).
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
@@ -51,6 +56,44 @@ Selected `autoImport`:
 | Key                                                                                                                                                                                                                                                                                | Description                                                                          |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `lucumaGlobalSettings`, `lucumaScalaVersionSettings`, `lucumaScalacSettings`, `lucumaScalacProjectSettings`, `lucumaPublishSettings`, `lucumaCiSettings`, `lucumaHeaderSettings`, `lucumaGitSettings`, `lucumaDocSettings`, `lucumaDockerComposeSettings`, `lucumaStewardSettings` | Reusable setting sequences, exposed so individual projects can opt in/out of pieces. |
+
+#### Reading the sbt cache from another workflow
+
+`ci.yml` is the only workflow that should write the sbt dependency cache. A hand-written
+workflow (an npm publish, a nightly) that also uses `setup-java`'s `cache: sbt` races CI to
+save the key, and a short job that resolves one project saves a partial cache. `setup-java` has
+no read-only mode, so drop `cache: sbt` there and restore CI's cache with
+`actions/cache/restore`, which never saves:
+
+```yaml
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          # no `cache: sbt` here
+
+      - name: Restore sbt cache (read-only, written by ci.yml)
+        uses: actions/cache/restore@v4
+        with:
+          # Must be byte-for-byte what setup-java v5 passes for `cache: sbt` on Linux, in this
+          # order: the cache "version" is a hash of this list, and a different list never matches.
+          path: |
+            /home/runner/.ivy2/cache
+            /home/runner/.sbt
+            /home/runner/.cache/coursier
+            !/home/runner/.sbt/*.lock
+            !/home/runner/**/ivydata-*.properties
+          key: setup-java-${{ runner.os }}-x64-sbt-${{ hashFiles('**/*.sbt', '**/project/build.properties', '**/project/**.scala', '**/project/**.sbt', '.github/workflows/ci.yml') }}
+          restore-keys: setup-java-${{ runner.os }}-x64-sbt-
+```
+
+`key` reproduces CI's exact key (same globs as the generated `cache-dependency-path`; `x64` is
+spelled the way `setup-java` writes it, not `runner.arch`'s `X64`). Check it once against the
+`Cache saved with the key:` line in a CI log. `restore-keys` covers the window where CI is still
+saving for the same commit, by taking the newest `setup-java` sbt cache visible to the branch.
+Until every hand-written workflow in the repo has been converted, that fallback can also pick a
+partial cache one of them saved, so convert them all. Anything the job needs beyond the
+restored cache downloads normally and is not saved.
 
 ### `LucumaScalaJSPlugin`
 
