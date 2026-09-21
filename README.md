@@ -41,6 +41,11 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
 - **CI:** fatal warnings in CI, `evictionErrorLevel` fatal in CI / relaxed locally,
   header + scalafmt + scalafix checks wired into the workflow, Mergify config, doc/dependency
   jobs disabled.
+- **Dependency downloads in CI:** the sbt cache key includes `ci.yml`, so another workflow in the
+  repo using `cache: sbt` (an npm publish, a nightly) cannot save a partial cache under CI's key
+  and leave CI downloading mid-test; other workflows read the cache as shown below. Coursier
+  retries harder before failing: 10 resolution attempts 5s apart (`csrConfiguration`) and 10
+  download attempts (`SBT_OPTS` in the workflow).
 - **Headers:** BSD-3-Clause C++-style line-comment header, applied automatically
   (`AutomateHeaderPlugin`).
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
@@ -51,6 +56,37 @@ Selected `autoImport`:
 | Key                                                                                                                                                                                                                                                                                | Description                                                                          |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `lucumaGlobalSettings`, `lucumaScalaVersionSettings`, `lucumaScalacSettings`, `lucumaScalacProjectSettings`, `lucumaPublishSettings`, `lucumaCiSettings`, `lucumaHeaderSettings`, `lucumaGitSettings`, `lucumaDocSettings`, `lucumaDockerComposeSettings`, `lucumaStewardSettings` | Reusable setting sequences, exposed so individual projects can opt in/out of pieces. |
+
+#### Reading the sbt cache from another workflow
+
+`ci.yml` is the only workflow that should write the sbt dependency cache. A hand-written
+workflow (an npm publish, a nightly) that also uses `setup-java`'s `cache: sbt` races CI to
+save the key, and a short job that resolves one project saves a partial cache. `setup-java` has
+no read-only mode, so drop `cache: sbt` there and restore CI's cache with
+`actions/cache/restore`, which never saves:
+
+```yaml
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          # no `cache: sbt` here
+
+      - name: Restore sbt cache (read-only, written by ci.yml)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.ivy2/cache
+            ~/.sbt
+            ~/.cache/coursier
+          key: setup-java-${{ runner.os }}-x64-sbt-never-matches
+          restore-keys: setup-java-${{ runner.os }}-x64-sbt-
+```
+
+The prefix in `restore-keys` matches the newest cache CI saved for the branch (or its base), so
+the workflow needs no copy of CI's hash. `x64` is spelled the way `setup-java` writes it, not
+`runner.arch`'s `X64`. Anything the job needs beyond that cache downloads normally and is not
+saved.
 
 ### `LucumaScalaJSPlugin`
 
