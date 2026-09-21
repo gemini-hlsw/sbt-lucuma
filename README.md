@@ -75,18 +75,25 @@ no read-only mode, so drop `cache: sbt` there and restore CI's cache with
       - name: Restore sbt cache (read-only, written by ci.yml)
         uses: actions/cache/restore@v4
         with:
+          # Must be byte-for-byte what setup-java v5 passes for `cache: sbt` on Linux, in this
+          # order: the cache "version" is a hash of this list, and a different list never matches.
           path: |
-            ~/.ivy2/cache
-            ~/.sbt
-            ~/.cache/coursier
-          key: setup-java-${{ runner.os }}-x64-sbt-never-matches
+            /home/runner/.ivy2/cache
+            /home/runner/.sbt
+            /home/runner/.cache/coursier
+            !/home/runner/.sbt/*.lock
+            !/home/runner/**/ivydata-*.properties
+          key: setup-java-${{ runner.os }}-x64-sbt-${{ hashFiles('**/*.sbt', '**/project/build.properties', '**/project/**.scala', '**/project/**.sbt', '.github/workflows/ci.yml') }}
           restore-keys: setup-java-${{ runner.os }}-x64-sbt-
 ```
 
-The prefix in `restore-keys` matches the newest cache CI saved for the branch (or its base), so
-the workflow needs no copy of CI's hash. `x64` is spelled the way `setup-java` writes it, not
-`runner.arch`'s `X64`. Anything the job needs beyond that cache downloads normally and is not
-saved.
+`key` reproduces CI's exact key (same globs as the generated `cache-dependency-path`; `x64` is
+spelled the way `setup-java` writes it, not `runner.arch`'s `X64`). Check it once against the
+`Cache saved with the key:` line in a CI log. `restore-keys` covers the window where CI is still
+saving for the same commit, by taking the newest `setup-java` sbt cache visible to the branch.
+Until every hand-written workflow in the repo has been converted, that fallback can also pick a
+partial cache one of them saved, so convert them all. Anything the job needs beyond the
+restored cache downloads normally and is not saved.
 
 ### `LucumaScalaJSPlugin`
 

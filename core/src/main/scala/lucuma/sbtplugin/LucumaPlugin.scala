@@ -168,7 +168,11 @@ object LucumaPlugin extends AutoPlugin {
           case step                                                  => step
         }
       },
-      githubWorkflowEnv += "SBT_OPTS" -> s"-D$CoursierDownloadRetryProperty=$CoursierDownloadRetries"
+      // Append rather than replace: a build may already carry SBT_OPTS (heap, proxies).
+      githubWorkflowEnv ~= { env =>
+        val retry = s"-D$CoursierDownloadRetryProperty=$CoursierDownloadRetries"
+        env.updated("SBT_OPTS", (env.get("SBT_OPTS").toList :+ retry).mkString(" "))
+      }
     )
 
     lazy val lucumaResolutionRetrySettings = Seq(
