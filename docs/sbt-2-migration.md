@@ -253,6 +253,21 @@ ThisBuild / githubWorkflowSbtCommand := "sbt -v"
 Locally the same job is done by `.jvmopts`, which is often gitignored — which is exactly why the
 failure appears on CI only.
 
+**Carry what you are overwriting.** `SBT_OPTS` is one string, not a list, so assigning it
+discards whatever was there before — including the flags sbt-lucuma contributes. The one that
+matters is the coursier retry, which exists because Maven Central lookups fail spuriously in CI:
+
+```scala
+ThisBuild / githubWorkflowEnv += ("SBT_OPTS" ->
+  "-Xmx6g -Xss4M -Dlmcoursier.internal.shaded.coursier.exception-retry=10")
+```
+
+Two of the five lucuma repos ported so far had quietly dropped it by setting the heap size, and
+nothing says so: the workflow looks right, and the build just fails occasionally for no visible
+reason. Check the generated `ci.yml` for the flag after adding your own options, and if you set
+`SBT_OPTS` in more than one place (a matrix job as well as the workflow), build both from one
+shared `val` so they cannot drift apart.
+
 ### A forked process inherits the sbt *server's* environment
 
 This one is worth knowing before it costs you an afternoon. sbt 2 keeps a background server, and
