@@ -39,6 +39,10 @@ object LucumaAffectedPlugin extends AutoPlugin {
       "Restrict CI test runs to the projects affected by the PR diff (default: true)"
     )
 
+    lazy val lucumaAffectedTestTask = settingKey[String](
+      "Task lucumaTestAffected runs on each affected project: testFull (default) or test"
+    )
+
     lazy val lucumaAffectedAlwaysPaths = settingKey[Seq[String]](
       "Globs that force a full build when changed"
     )
@@ -107,6 +111,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
   override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaAffectedTests                                    := true,
+    // sbt 2's `test` skips any suite whose digest already passed, in the remote cache too. The
+    // digest ignores envVars, javaOptions and anything read at runtime, so opting in is per build.
+    lucumaAffectedTestTask                                 := "testFull",
     lucumaAffectedAlwaysPaths                              := AffectedProjects.DefaultAlwaysPaths,
     lucumaAffectedIgnorePaths                              := AffectedProjects.DefaultIgnorePaths,
     lucumaAffectedBaseRef                                  := AffectedProjects.baseRef(sys.env),
@@ -237,8 +244,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
       })
 
   /**
-   * `lucumaTestAffected` -- runs `test` on the affected projects, restricted to the current
-   * project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
+   * `lucumaTestAffected` -- runs `lucumaAffectedTestTask` on the affected projects, restricted to
+   * the current project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
    *
    * The project list comes from the `lucumaAffectedProjects` task rather than being recomputed, so
    * the command can never disagree with the task -- including when a build overrides
@@ -246,7 +253,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
    */
   private def testAffected: Command =
     Command.command("lucumaTestAffected") { st =>
-      val (next, projects) = Project.extract(st).runTask(ThisBuild / lucumaAffectedProjects, st)
+      val extracted        = Project.extract(st)
+      val (next, projects) = extracted.runTask(ThisBuild / lucumaAffectedProjects, st)
+      val task             = extracted.get(ThisBuild / lucumaAffectedTestTask)
       val log              = next.log
       val scoped           = projects.filter(aggregateClosure(next))
 
@@ -254,10 +263,10 @@ object LucumaAffectedPlugin extends AutoPlugin {
         log.info("[affected] nothing to test")
         next
       } else {
-        log.info(s"[affected] testing: ${scoped.mkString(", ")}")
+        log.info(s"[affected] running $task on: ${scoped.mkString(", ")}")
         // `test`, not `Test/test`: it delegates to the same task, but it is the key a project
         // overrides with `test := {}` to opt out, and `Test/test` would walk straight past that
-        scoped.map(id => s"$id/test").mkString("all ", " ", "") :: next
+        scoped.map(id => s"$id/$task").mkString("all ", " ", "") :: next
       }
     }
 

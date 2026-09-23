@@ -186,6 +186,7 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 | Setting                     | Default                                                                                     | Description                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `lucumaAffectedTests`       | `true`                                                                                      | Set to `false` to always run the full suite.                                                                       |
+| `lucumaAffectedTestTask`    | `testFull`                                                                                  | Task run on each affected project. Set to `test` to also skip suites already passed in the (remote) cache; see below. |
 | `lucumaAffectedAlwaysPaths` | see above                                                                                   | Globs that trigger a full run.                                                                                     |
 | `lucumaAffectedIgnorePaths` | see above                                                                                   | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
 | `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` on a PR, else `origin/<default branch>` on a push to any other branch, else the previous commit. Never set on a tag. | What to diff against. `None` runs everything.                                                                      |
@@ -193,11 +194,19 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
 not `core/src/sbt-test/foo/build.sbt`.
 
+In sbt 2, `test` is incremental: a suite is skipped when its digest is already recorded as passed,
+and with `Global / remoteCache` set (plus `addRemoteCachePlugin` in `project/plugins.sbt`) that
+record is shared across machines. The digest covers classpath and test options only, not
+`Test / envVars`, `Test / javaOptions`, `-D` properties, or anything a test reads at runtime, so a
+suite that depends on those can be wrongly skipped. `testFull` is the default for that reason. A
+build that accepts the trade-off sets `ThisBuild / lucumaAffectedTestTask := "test"` and bumps
+`sbt.cacheversion` when the environment changes in a way the digest cannot see.
+
 | Task                         | Description                                                                                                 |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `lucumaAffectedChangedFiles` | Changed files, including uncommitted and untracked ones. `None` if no diff was possible.                    |
 | `lucumaAffectedProjects`     | The projects to test.                                                                                       |
-| `lucumaTestAffected`         | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
+| `lucumaTestAffected`         | Runs `lucumaAffectedTestTask` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
 
 ### Skipping other jobs
 
