@@ -161,13 +161,12 @@ object LucumaPlugin extends AutoPlugin {
     // 2. Downloads that do happen retry more before giving up. Coursier's own defaults are 3
     //    resolution attempts 1s apart and 5 download attempts.
     lazy val lucumaDependencyCacheSettings = Seq(
-      githubWorkflowJobSetup ~= {
-        _.map {
-          case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
-            step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
-          case step                                                  => step
-        }
-      },
+      // Rewrite the final job list rather than `githubWorkflowJobSetup`: builds that assemble
+      // their own setup steps (a custom checkout, say) replace that setting outright and would
+      // silently lose the key change. This also covers `githubWorkflowAddedJobs`. Jobs that other
+      // lucuma plugins append later (they `require` this one, so their settings run after this)
+      // must call `withSbtCacheKey` themselves; see `LucumaAffectedPlugin.affectedJob`.
+      githubWorkflowGeneratedCI ~= (_.map(withSbtCacheKey)),
       // Append rather than replace: a build may already carry SBT_OPTS (heap, proxies).
       githubWorkflowEnv ~= { env =>
         val retry = s"-D$CoursierDownloadRetryProperty=$CoursierDownloadRetries"
@@ -240,6 +239,14 @@ object LucumaPlugin extends AutoPlugin {
       case UseRef.Public("actions", "setup-java", _) => step.params.get("cache").contains("sbt")
       case _                                         => false
     }
+
+  /** Gives every sbt-caching `setup-java` step in the job the CI-specific cache key. */
+  private[sbtplugin] def withSbtCacheKey(job: WorkflowJob): WorkflowJob =
+    job.withSteps(job.steps.map {
+      case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
+        step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
+      case step                                                  => step
+    })
 
   private val CoursierResolutionRetries: Int               = 10
   private val CoursierResolutionRetryDelay: FiniteDuration = 5.seconds

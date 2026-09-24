@@ -1,0 +1,5 @@
+# the build job (custom job setup), an added job built from it, and the affected job appended by
+# LucumaAffectedPlugin all get the CI-specific sbt cache key
+> checkCacheKey
+
+> checkRetries
