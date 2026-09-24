@@ -2,21 +2,24 @@
 
 A collection of sbt plugins for shared build settings across Gemini lucuma projects.
 
+**Requires sbt 2.x** (2.0.8 or later). Since 0.17 these are sbt 2 plugins, published as
+`_sbt2_3`; the 0.16 line remains the last one for sbt 1. To port an existing project, see
+[docs/sbt-2-migration.md](docs/sbt-2-migration.md).
+
 ## Artifacts
 
 The plugins are split across several published artifacts. Most projects only need
 **one** of `sbt-lucuma-lib` (for published libraries) or `sbt-lucuma-app` (for
 applications) — both depend on the core `sbt-lucuma` artifact and pull in its plugins
-transitively. The CSS, Docker, and jsdom artifacts are added as needed.
+transitively. The CSS and Docker artifacts are added as needed.
 
 | Artifact            | Add with                                                                    | Provides                                                                                                       |
 | ------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaBundleMonPlugin` |
+| `sbt-lucuma`        | _(transitive — pulled by `-lib`/`-app`)_                                    | `LucumaPlugin`, `LucumaScalaJSPlugin`, `LucumaScalafmtPlugin`, `LucumaScalafixPlugin`, `LucumaWorkflowSyntaxPlugin` |
 | `sbt-lucuma-lib`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-lib" % V)`                         | `LucumaLibPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-app`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % V)`                         | `LucumaAppPlugin` (+ core)                                                                                     |
 | `sbt-lucuma-css`    | `addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % V)`                         | `LucumaCssPlugin`                                                                                              |
 | `sbt-lucuma-docker` | `addSbtPlugin("edu.gemini" % "sbt-lucuma-docker" % V)`                      | `LucumaDockerPlugin` (+ core)                                                                                  |
-| `lucuma-jsdom`      | `libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % V` (in `project/`) | `LucumaJSDOMNodeJSEnv`                                                                                         |
 
 In the tables below, **Activation** is either:
 
@@ -50,6 +53,11 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
   (`AutomateHeaderPlugin`).
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
   workflow, headers, and scalafmt/scalafix configs.
+
+Also brings in [sbt-revolver](https://github.com/indoorvivants/sbt-revolver), so `reStart` /
+`reStop` / `reStatus` / `reStartArgs` are available from the sbt shell in any lucuma build,
+whatever bundle it pins. This is the `com.indoorvivants` fork: the original `io.spray` plugin
+has no sbt 2 build. The API is unchanged.
 
 Selected `autoImport`:
 
@@ -131,13 +139,16 @@ The scalafix counterpart to the above, managing `.scalafix-common.conf`.
 | `lucumaScalafixGenerate` | Write the common scalafix config to the build root.      |
 | `lucumaScalafixCheck`    | Fail if the on-disk config differs from the bundled one. |
 
-### `LucumaBundleMonPlugin`
+### `LucumaWorkflowSyntaxPlugin`
 
-**Activation:** Automatic where `BundleMonPlugin` is present (requires `LucumaPlugin` &&
-`BundleMonPlugin`).
+**Activation:** Automatic.
 
-Adds a "Monitor bundle size" CI step (runs `bundleMon` for the `rootJS` matrix project) and
-sets `bundleMonCompression := Brotli`.
+Rewrites the `sbt` invocations in the generated workflow so they parse under sbt 2, which
+rejects `sbt a b c` and mis-reads `sbt '++ 3' foo --bar`. Each step becomes a single
+`;`-separated argument with the `++` folded in.
+
+It runs after every other lucuma plugin that rewrites the generated CI, because those match
+on a step's individual commands, which no longer exist once they have been joined.
 
 ### `LucumaAffectedPlugin`
 
@@ -175,6 +186,7 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 | Setting                     | Default                                                                                     | Description                                                                                                        |
 | --------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `lucumaAffectedTests`       | `true`                                                                                      | Set to `false` to always run the full suite.                                                                       |
+| `lucumaAffectedTestTask`    | `testFull`                                                                                  | Task run on each affected project. Set to `test` to also skip suites already passed in the (remote) cache; see below. |
 | `lucumaAffectedAlwaysPaths` | see above                                                                                   | Globs that trigger a full run.                                                                                     |
 | `lucumaAffectedIgnorePaths` | see above                                                                                   | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
 | `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` on a PR, else `origin/<default branch>` on a push to any other branch, else the previous commit. Never set on a tag. | What to diff against. `None` runs everything.                                                                      |
@@ -182,11 +194,19 @@ The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffect
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
 not `core/src/sbt-test/foo/build.sbt`.
 
+In sbt 2, `test` is incremental: a suite is skipped when its digest is already recorded as passed,
+and with `Global / remoteCache` set (plus `addRemoteCachePlugin` in `project/plugins.sbt`) that
+record is shared across machines. The digest covers classpath and test options only, not
+`Test / envVars`, `Test / javaOptions`, `-D` properties, or anything a test reads at runtime, so a
+suite that depends on those can be wrongly skipped. `testFull` is the default for that reason. A
+build that accepts the trade-off sets `ThisBuild / lucumaAffectedTestTask := "test"` and bumps
+`sbt.cacheversion` when the environment changes in a way the digest cannot see.
+
 | Task                         | Description                                                                                                 |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `lucumaAffectedChangedFiles` | Changed files, including uncommitted and untracked ones. `None` if no diff was possible.                    |
 | `lucumaAffectedProjects`     | The projects to test.                                                                                       |
-| `lucumaTestAffected`         | Runs `Test/test` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
+| `lucumaTestAffected`         | Runs `lucumaAffectedTestTask` on them. Limited to the current project's aggregates, so `rootJVM` / `rootJS` still works. |
 
 ### Skipping other jobs
 
@@ -360,10 +380,11 @@ Collects CSS assets (from both the classpath and dependency jars) into the targe
 as part of the linking step, so stylesheets shipped inside lucuma libraries end up alongside
 the linked JS.
 
-| Key                       | Description                                                                 |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `lucumaCss` (task)        | Copy CSS into `target/lucuma-css`; hooked into `fastLinkJS` / `fullLinkJS`. |
-| `lucumaCssExts` (setting) | File extensions treated as CSS (default `css`, `scss`, `saas`).             |
+| Key                                  | Description                                                                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `lucumaCss` (task)                   | Copy CSS into `lucumaCssOutputDirectory`; hooked into `fastLinkJS` / `fullLinkJS`.                                                   |
+| `lucumaCssExts` (setting)            | File extensions treated as CSS (default `css`, `scss`, `saas`).                                                                     |
+| `lucumaCssOutputDirectory` (setting) | Where the CSS goes. Defaults to `target.value / "lucuma-css"`, which on sbt 2 embeds the Scala version; set a stable path for bundlers. |
 
 ---
 
@@ -390,9 +411,18 @@ Opinionated Docker packaging (via sbt-native-packager) for lucuma server applica
 | `lucumaDockerOpenDebugPorts` | `false` | Open JMX / JDWP debug ports in the start script.       |
 | `lucumaDockerUseHerokuAgent` | `true`  | Bundle and attach the Heroku Java metrics agent.       |
 
+It also adds sbt 2 lint exclusions for the Debian, Rpm and Linux settings sbt-native-packager
+defines but a Docker-only build never reads, which otherwise produce ~90 warnings per project.
+The exclusions are scoped to those configurations, so genuinely unused settings in your own
+build are still reported.
+
 ---
 
-## `lucuma-jsdom`
+## `lucuma-jsdom` (not published for sbt 2)
+
+`scalajs-env-jsdom-nodejs` has no Scala 3 build, so this module is out of the build until
+one exists. Its source is still in `jsdom/`. The last published version is on the 0.16 line,
+for sbt 1.
 
 ### `LucumaJSDOMNodeJSEnv`
 

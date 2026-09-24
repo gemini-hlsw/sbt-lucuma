@@ -39,6 +39,10 @@ object LucumaAffectedPlugin extends AutoPlugin {
       "Restrict CI test runs to the projects affected by the PR diff (default: true)"
     )
 
+    lazy val lucumaAffectedTestTask = settingKey[String](
+      "Task lucumaTestAffected runs on each affected project: testFull (default) or test"
+    )
+
     lazy val lucumaAffectedAlwaysPaths = settingKey[Seq[String]](
       "Globs that force a full build when changed"
     )
@@ -92,7 +96,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
      *   by id, so it is indifferent to whether this one ran.
      */
     def lucumaAffectedJob(job: WorkflowJob, project: Project, more: Project*): WorkflowJob = {
-      val cond = lucumaAffectedCond(project, more: _*)
+      val cond = lucumaAffectedCond(project, more*)
       job
         .withNeeds((job.needs :+ lucumaAffectedJobId).distinct)
         .withCond(Some(job.cond.fold(cond)(existing => s"($existing) && $cond")))
@@ -105,12 +109,15 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = allRequirements
 
-  override val buildSettings: Seq[Setting[_]] = Seq(
+  override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaAffectedTests                                    := true,
+    // sbt 2's `test` skips any suite whose digest already passed, in the remote cache too. The
+    // digest ignores envVars, javaOptions and anything read at runtime, so opting in is per build.
+    lucumaAffectedTestTask                                 := "testFull",
     lucumaAffectedAlwaysPaths                              := AffectedProjects.DefaultAlwaysPaths,
     lucumaAffectedIgnorePaths                              := AffectedProjects.DefaultIgnorePaths,
     lucumaAffectedBaseRef                                  := AffectedProjects.baseRef(sys.env),
-    lucumaAffectedChangedFiles                             := {
+    lucumaAffectedChangedFiles                             := Def.uncached {
       val log = streams.value.log
       (ThisBuild / lucumaAffectedBaseRef).value match {
         case None       =>
@@ -120,8 +127,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
           changedFiles((ThisBuild / baseDirectory).value, base, log)
       }
     },
-    lucumaAffectedProjects                                 := planTask.value.projects,
-    lucumaAffectedReport                                   := {
+    lucumaAffectedProjects                                 := Def.uncached(planTask.value.projects),
+    lucumaAffectedReport                                   := Def.uncached {
       val result = planTask.value
       streams.value.log.info(s"[affected] projects: ${result.projects.mkString(", ")}")
 
@@ -237,8 +244,8 @@ object LucumaAffectedPlugin extends AutoPlugin {
       })
 
   /**
-   * `lucumaTestAffected` -- runs `test` on the affected projects, restricted to the current
-   * project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
+   * `lucumaTestAffected` -- runs `lucumaAffectedTestTask` on the affected projects, restricted to
+   * the current project's aggregate closure so the `rootJVM` / `rootJS` matrix split still works.
    *
    * The project list comes from the `lucumaAffectedProjects` task rather than being recomputed, so
    * the command can never disagree with the task -- including when a build overrides
@@ -246,7 +253,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
    */
   private def testAffected: Command =
     Command.command("lucumaTestAffected") { st =>
-      val (next, projects) = Project.extract(st).runTask(ThisBuild / lucumaAffectedProjects, st)
+      val extracted        = Project.extract(st)
+      val (next, projects) = extracted.runTask(ThisBuild / lucumaAffectedProjects, st)
+      val task             = extracted.get(ThisBuild / lucumaAffectedTestTask)
       val log              = next.log
       val scoped           = projects.filter(aggregateClosure(next))
 
@@ -254,10 +263,10 @@ object LucumaAffectedPlugin extends AutoPlugin {
         log.info("[affected] nothing to test")
         next
       } else {
-        log.info(s"[affected] testing: ${scoped.mkString(", ")}")
+        log.info(s"[affected] running $task on: ${scoped.mkString(", ")}")
         // `test`, not `Test/test`: it delegates to the same task, but it is the key a project
         // overrides with `test := {}` to opt out, and `Test/test` would walk straight past that
-        scoped.map(id => s"$id/test").mkString("all ", " ", "") :: next
+        scoped.map(id => s"$id/$task").mkString("all ", " ", "") :: next
       }
     }
 
@@ -345,8 +354,13 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
   /** `None` means we could not compute a diff, which the caller turns into a full build. */
   private def changedFiles(root: File, base: String, log: Logger): Option[Seq[String]] = {
-    def git(args: String*): Option[Seq[String]] =
-      Try(Process("git" +: args, root).lineStream_!(nullLogger).toList).toOption
+    // `lazyLines_!` would hide a non-zero exit behind an empty list, and an empty diff means
+    // "nothing to test": a missing base ref must fail open instead.
+    def git(args: String*): Option[Seq[String]] = {
+      val out  = List.newBuilder[String]
+      val exit = Try(Process("git" +: args, root).!(ProcessLogger(out += _, _ => ()))).getOrElse(-1)
+      if (exit == 0) Some(out.result()) else None
+    }
 
     git("diff", "--name-only", "--no-renames", s"$base...HEAD") match {
       case None        =>
@@ -360,5 +374,4 @@ object LucumaAffectedPlugin extends AutoPlugin {
     }
   }
 
-  private val nullLogger: ProcessLogger = ProcessLogger(_ => (), _ => ())
 }

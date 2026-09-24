@@ -54,7 +54,7 @@ object LucumaRequiredChecksPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger = allRequirements
 
-  override val buildSettings: Seq[Setting[_]] = Seq(
+  override val buildSettings: Seq[Setting[?]] = Seq(
     lucumaRequiredChecks        := true,
     lucumaRequiredCheckJobs     := Seq("build"),
     lucumaRequiredChecksJobName := "REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED",

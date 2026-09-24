@@ -12,7 +12,7 @@ ThisBuild / lucumaRequiredChecksJobName := "Custom name"
 lazy val checkGate    = taskKey[Unit]("The gate depends on jobs by id and always runs")
 lazy val checkOff     = taskKey[Unit]("No gate when disabled")
 
-ThisBuild / checkGate := {
+ThisBuild / checkGate := Def.uncached {
   val job = (ThisBuild / githubWorkflowGeneratedCI).value
     .find(_.id == "required-checks")
     .getOrElse(sys.error("no `required-checks` job"))
@@ -36,7 +36,7 @@ ThisBuild / checkGate := {
     sys.error(s"a skipped dependency is not a failure: ${fail.cond}")
 }
 
-ThisBuild / checkOff := {
+ThisBuild / checkOff := Def.uncached {
   if ((ThisBuild / githubWorkflowGeneratedCI).value.exists(_.id == "required-checks"))
     sys.error("generated a gate while disabled")
 }

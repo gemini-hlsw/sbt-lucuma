@@ -13,11 +13,13 @@ object LucumaCssPlugin extends AutoPlugin {
   override def requires = ScalaJSPlugin
 
   object autoImport {
-    lazy val lucumaCssExts = settingKey[Set[String]]("Extensions for CSS files")
-    lazy val lucumaCss     = taskKey[Unit]("Copy CSS to target")
+    lazy val lucumaCssExts            = settingKey[Set[String]]("Extensions for CSS files")
+    lazy val lucumaCss                = taskKey[Unit]("Copy CSS to target")
+    lazy val lucumaCssOutputDirectory =
+      settingKey[File]("Directory the CSS files are copied to")
   }
-  import autoImport._
-  import ScalaJSPlugin.autoImport._
+  import autoImport.*
+  import ScalaJSPlugin.autoImport.*
 
   private final val cssDir = "lucuma-css"
 
@@ -26,15 +28,22 @@ object LucumaCssPlugin extends AutoPlugin {
   )
 
   override lazy val projectSettings = Seq(
-    Compile / fastLinkJS := (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value,
-    Compile / fullLinkJS := (Compile / fullLinkJS).dependsOn(Compile / lucumaCss).value,
-    Compile / lucumaCss  := {
+    lucumaCssOutputDirectory := target.value / cssDir,
+    Compile / fastLinkJS     := Def.uncached(
+      (Compile / fastLinkJS).dependsOn(Compile / lucumaCss).value
+    ),
+    Compile / fullLinkJS     := Def.uncached(
+      (Compile / fullLinkJS).dependsOn(Compile / lucumaCss).value
+    ),
+    Compile / lucumaCss      := Def.uncached {
       val cache   = streams.value.cacheStoreFactory.make("css")
       val log     = streams.value.log
       val cssExts = lucumaCssExts.value.map("." + _)
+      val conv    = fileConverter.value
+      val outDir  = lucumaCssOutputDirectory.value
 
       val files = (Compile / fullClasspath).value.flatMap { attr =>
-        val file = attr.data
+        val file = conv.toPath(attr.data).toFile
         if (file.getName.endsWith(".jar"))
           List(file)
         else
@@ -42,24 +51,27 @@ object LucumaCssPlugin extends AutoPlugin {
       }.toSet
 
       def copyJar(file: File): Unit =
-        IO.unzip(
-          file,
-          target.value,
-          name =>
-            if (name.startsWith(cssDir) && cssExts.exists(name.endsWith(_))) {
-              log.info(
-                s"Copying ${name.split('/').last} from ${file.getName} to ${target.value / cssDir}"
-              )
-              true
-            } else false
-        )
+        IO.withTemporaryDirectory { tmp =>
+          val _ = IO.unzip(
+            file,
+            tmp,
+            name =>
+              if (name.startsWith(cssDir) && cssExts.exists(name.endsWith(_))) {
+                log.info(s"Copying ${name.split('/').last} from ${file.getName} to $outDir")
+                true
+              } else false
+          )
+          // overwrite: unzip keeps the jar entry's timestamp, which is often a fixed epoch,
+          // so the default newer-than check would leave stale CSS behind after a version bump.
+          if ((tmp / cssDir).exists) IO.copyDirectory(tmp / cssDir, outDir, overwrite = true)
+        }
 
       def copyFile(file: File): Unit = {
-        log.info(s"Copying ${file} to ${target.value / cssDir}")
+        log.info(s"Copying ${file} to $outDir")
         if (file.isDirectory)
-          IO.copyDirectory(file, target.value / cssDir / file.getName)
+          IO.copyDirectory(file, outDir / file.getName)
         else
-          IO.copyFile(file, target.value / cssDir / file.getName)
+          IO.copyFile(file, outDir / file.getName)
       }
 
       Tracked.diffInputs(cache, FileInfo.lastModified)(files) { report =>
