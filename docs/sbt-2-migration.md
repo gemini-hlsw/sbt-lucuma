@@ -380,7 +380,8 @@ sbt clean compile test            # [error] Expected whitespace character
 Two further traps:
 
 - **`test` is incremental now** (it is the old `testQuick`) and its success is cached by
-  content hash, surviving `clean`. `testFull` is the old always-run-everything `test`.
+  content hash, surviving `clean`. `testFull` is the old always-run-everything `test`. In CI,
+  `lucumaTestAffected` runs `testFull` unless you set `lucumaAffectedTestTask` (section 6).
 - **`sbt '++ 3' foo --bar` is broken** — the aggregated project keys get passed to `foo` as
   arguments. Fold the `++` into the sequence instead: `sbt "++ 3; foo --bar"`. This is what
   made `scalafixAll --check` look broken; the key itself is fine.
@@ -429,6 +430,95 @@ Run `sbt "++ 3; publishLocal"` before you call it done. Two failures hide until 
 - **`tlReleaseLocal` does not work** on the sbt 2 sbt-typelevel snapshot
   ([sbt-pgp#246](https://github.com/sbt/sbt-pgp/issues/246)). Use `publishLocal`.
 
+## 6. Caching, and the remote cache
+
+Everything here is optional; the defaults are safe. It is the checklist for a build that wants CI
+to skip work it has already done. The long version, with the evidence, is
+[`sbt-2-remote-cache-findings.md`](sbt-2-remote-cache-findings.md).
+
+### `Global / remoteCache` alone does nothing
+
+The gRPC store is a separate plugin. Without it the setting is accepted and silently ignored;
+`show Global/remoteCache` still prints `Some(...)`. Add to `project/plugins.sbt`:
+
+```scala
+addRemoteCachePlugin
+```
+
+Then in `build.sbt`, with the host and key delivered as system properties through `SBT_OPTS`
+(section 3 explains why not environment variables):
+
+```scala
+Global / remoteCache        := sys.props.get("buildbuddy.host").map(h => uri(s"grpcs://$h"))
+Global / remoteCacheHeaders ++= sys.props.get("buildbuddy.key").map("x-buildbuddy-api-key=" + _).toList
+```
+
+Failures are invisible: a wrong key or a missing plugin looks exactly like an empty cache. Judge
+by whether compilation is skipped, never by the clock. `-Dsbt.experimental_execution_log=<path>`
+writes one record per cached action with its digest and `cacheHit`; the file is flushed when the
+server exits.
+
+### Opting into suite skipping
+
+`lucumaTestAffected` runs `testFull` by default. `ThisBuild / lucumaAffectedTestTask := "test"`
+makes CI skip any suite already recorded as passed, on any machine sharing the cache. The digest
+covers bytecode, jars, test resources and `Tests.Argument`s. It does **not** cover
+`Test / envVars`, `Test / javaOptions`, `-D` properties, or anything a test reads at runtime, so
+anything of that kind that matters has to be fed in by hand:
+
+```scala
+// e.g. database migrations, which are main resources and so invisible to the suite digest
+ThisBuild / extraTestDigests ++= Def.uncached {
+  val files = ((ThisBuild / baseDirectory).value / "modules" * "*" / "src" / "main" / "resources" / "db" / "migration" * "*.sql").get()
+  files.sortBy(_.getPath).map(f => sbt.util.Digest.sha256Hash(f.toPath))
+}
+```
+
+`Def.uncached` is required: the task reads the filesystem, and a cached result never sees a new
+file. When the JDK vendor, a container image or an environment variable changes, bump
+`ThisBuild / cacheVersion`; that invalidates every entry.
+
+### Three things that change on every commit
+
+Each one makes every dependent project, and every suite in it, miss the cache per commit.
+
+1. **`BuildInfo` with `git.gitHeadCommit` or a timestamp.** Every build generates a different
+   source. Keep only content-stable keys; deliver the commit at runtime instead, for example
+   `Docker / dockerEnvVars += "GIT_COMMIT" -> git.gitHeadCommit.value.getOrElse("")`.
+   If the project is published, MiMa sees the removed methods; exclude `buildinfo.BuildInfo*`.
+2. **The version.** Internal project jars are named `<module>_3-<version>.jar` and their
+   manifest carries the version, and both are part of the digest. On the test shards, pin it.
+3. **`-scalajs-mapSourceURI`.** sbt-typelevel embeds the commit hash in this scalac flag for
+   Scala.js projects. On the test shards, strip it.
+
+Items 2 and 3 are one command in `build.sbt`, run ahead of `lucumaTestAffected` on the shards.
+Set `<project> / version`, not `set every version`: the latter also rewrites `Jmh / version`.
+
+```scala
+commands += Command.command("stabilizeCiInputs") { st =>
+  val extracted = Project.extract(st)
+  val sourceMap = "-scalajs-mapSourceURI:"
+  val pins      = extracted.structure.allProjectRefs.flatMap { p =>
+    Seq(
+      p / version := "0.0.0-ci",
+      p / scalacOptions ~= (_.filterNot(_.startsWith(sourceMap))),
+      p / Compile / scalacOptions ~= (_.filterNot(_.startsWith(sourceMap))),
+      p / Test / scalacOptions ~= (_.filterNot(_.startsWith(sourceMap)))
+    )
+  }
+  extracted.appendWithSession(pins, st)
+}
+```
+
+### Two CI traps
+
+- **Shallow checkouts break affected-project selection.** `lucumaTestAffected` diffs against
+  `origin/main`; a `fetch-depth: 1` checkout has no such ref. sbt-lucuma 0.17 fails open to
+  "everything" in that case, but it costs you the narrowing. Keep the full checkout; it is seconds.
+- **Files a CI step modifies look like changes.** A `chmod` on a tracked file makes git report it
+  modified, it belongs to no project, and the plugin runs everything. Add it to
+  `lucumaAffectedIgnorePaths`.
+
 ## Known gaps
 
 | What | Status |
@@ -438,9 +528,13 @@ Run `sbt "++ 3; publishLocal"` before you call it done. Two failures hide until 
 | `sbt-jdi-tools` / Metals | No sbt 2 build. Delete the generated `metals.sbt` files whenever they reappear. |
 | `sbt-revolver` | The `io.spray` artifact has no sbt 2 build. Use the `com.indoorvivants` fork, which keeps the same API. |
 | `sbt-typelevel` | Snapshot only, from the gemini-hlsw repo. Swap the resolver out once upstream releases. |
+| Remote cache digests | An internal jar built in the same session enters dependents' inputs without a content hash, a restored one with it, so one missed packaging task rebuilds everything downstream on that machine. Also the version-in-jar-name issue above. Both are sbt bugs, not yet reported upstream. |
 
 ## References
 
 - [Migrating from sbt 1.x](https://www.scala-sbt.org/2.x/docs/en/changes/migrating-from-sbt-1.x.html)
 - [sbt 2.0 change summary](https://www.scala-sbt.org/2.x/docs/en/changes/sbt-2.0-change-summary.html)
 - [sbt-typelevel on sbt 2](https://github.com/zainab-ali/sbt-typelevel/blob/cross-build-all-plugins/SBT-2-migration.md)
+- [Remote cache setup](https://github.com/sbt/website/blob/develop/src/reference/reference/remote-cache-setup.md) (sbt docs source)
+- [`sbt-2-remote-cache-findings.md`](sbt-2-remote-cache-findings.md) and
+  [`sbt-2-test-caching.md`](sbt-2-test-caching.md) in this directory
