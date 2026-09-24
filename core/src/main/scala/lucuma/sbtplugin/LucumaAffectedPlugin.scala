@@ -349,8 +349,13 @@ object LucumaAffectedPlugin extends AutoPlugin {
 
   /** `None` means we could not compute a diff, which the caller turns into a full build. */
   private def changedFiles(root: File, base: String, log: Logger): Option[Seq[String]] = {
-    def git(args: String*): Option[Seq[String]] =
-      Try(Process("git" +: args, root).lineStream_!(nullLogger).toList).toOption
+    // `lineStream_!` would hide a non-zero exit behind an empty list, and an empty diff means
+    // "nothing to test": a missing base ref must fail open instead.
+    def git(args: String*): Option[Seq[String]] = {
+      val out  = List.newBuilder[String]
+      val exit = Try(Process("git" +: args, root).!(ProcessLogger(out += _, _ => ()))).getOrElse(-1)
+      if (exit == 0) Some(out.result()) else None
+    }
 
     git("diff", "--name-only", "--no-renames", s"$base...HEAD") match {
       case None        =>
@@ -364,5 +369,4 @@ object LucumaAffectedPlugin extends AutoPlugin {
     }
   }
 
-  private val nullLogger: ProcessLogger = ProcessLogger(_ => (), _ => ())
 }
