@@ -73,7 +73,7 @@ no read-only mode, so drop `cache: sbt` there and restore CI's cache with
           # no `cache: sbt` here
 
       - name: Restore sbt cache (read-only, written by ci.yml)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           # Must be byte-for-byte what setup-java v5 passes for `cache: sbt` on Linux, in this
           # order: the cache "version" is a hash of this list, and a different list never matches.

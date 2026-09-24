@@ -161,11 +161,16 @@ object LucumaPlugin extends AutoPlugin {
     // 2. Downloads that do happen retry more before giving up. Coursier's own defaults are 3
     //    resolution attempts 1s apart and 5 download attempts.
     lazy val lucumaDependencyCacheSettings = Seq(
-      githubWorkflowJobSetup ~= {
-        _.map {
-          case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
-            step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
-          case step                                                  => step
+      // Rewrite the final job list rather than `githubWorkflowJobSetup`: builds that assemble
+      // their own setup steps (a custom checkout, say) replace that setting outright and would
+      // silently lose the key change. This also covers `githubWorkflowAddedJobs`.
+      githubWorkflowGeneratedCI ~= {
+        _.map { job =>
+          job.withSteps(job.steps.map {
+            case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
+              step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
+            case step                                                  => step
+          })
         }
       },
       // Append rather than replace: a build may already carry SBT_OPTS (heap, proxies).
