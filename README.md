@@ -41,11 +41,16 @@ scalafmt/scalafix plugins, and configures sensible defaults across the build:
 - **CI:** fatal warnings in CI, `evictionErrorLevel` fatal in CI / relaxed locally,
   header + scalafmt + scalafix checks wired into the workflow, Mergify config, doc/dependency
   jobs disabled.
-- **Dependency downloads in CI:** the sbt cache key includes `ci.yml`, so another workflow in the
-  repo using `cache: sbt` (an npm publish, a nightly) cannot save a partial cache under CI's key
-  and leave CI downloading mid-test; other workflows read the cache as shown below. Coursier
-  retries harder before failing: 10 resolution attempts 5s apart (`csrConfiguration`) and 10
-  download attempts (`SBT_OPTS` in the workflow).
+- **Dependency downloads in CI:** three defenses against spurious download failures. The sbt
+  cache key includes `ci.yml`, so another workflow in the repo using `cache: sbt` (an npm
+  publish, a nightly) cannot save a partial cache under CI's key and leave CI downloading
+  mid-test; other workflows read the cache as shown below. The `sbt update` step, where the
+  downloads happen on a cache miss, is retried up to 3 times 30s apart and also fetches the
+  Scala 3 compiler bridge, which sbt otherwise resolves at the first compile. Coursier's own
+  retries are raised where they apply: 10 resolution attempts 5s apart on "Connection timed
+  out" and HTTP 5xx (`csrConfiguration`), and 10 download attempts on SSL errors (`SBT_OPTS`
+  in the workflow). Coursier does not retry a plain connection reset, only failures to
+  establish the connection, which is why the step-level retry exists.
 - **Headers:** BSD-3-Clause C++-style line-comment header, applied automatically
   (`AutomateHeaderPlugin`).
 - **Git versioning** and a `prePR` / `tlPrePrBotHook` command alias that regenerates the
@@ -66,25 +71,25 @@ no read-only mode, so drop `cache: sbt` there and restore CI's cache with
 `actions/cache/restore`, which never saves:
 
 ```yaml
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 25
-          # no `cache: sbt` here
+- uses: actions/setup-java@v5
+  with:
+    distribution: temurin
+    java-version: 25
+    # no `cache: sbt` here
 
-      - name: Restore sbt cache (read-only, written by ci.yml)
-        uses: actions/cache/restore@v6
-        with:
-          # Must be byte-for-byte what setup-java v5 passes for `cache: sbt` on Linux, in this
-          # order: the cache "version" is a hash of this list, and a different list never matches.
-          path: |
-            /home/runner/.ivy2/cache
-            /home/runner/.sbt
-            /home/runner/.cache/coursier
-            !/home/runner/.sbt/*.lock
-            !/home/runner/**/ivydata-*.properties
-          key: setup-java-${{ runner.os }}-x64-sbt-${{ hashFiles('**/*.sbt', '**/project/build.properties', '**/project/**.scala', '**/project/**.sbt', '.github/workflows/ci.yml') }}
-          restore-keys: setup-java-${{ runner.os }}-x64-sbt-
+- name: Restore sbt cache (read-only, written by ci.yml)
+  uses: actions/cache/restore@v6
+  with:
+    # Must be byte-for-byte what setup-java v5 passes for `cache: sbt` on Linux, in this
+    # order: the cache "version" is a hash of this list, and a different list never matches.
+    path: |
+      /home/runner/.ivy2/cache
+      /home/runner/.sbt
+      /home/runner/.cache/coursier
+      !/home/runner/.sbt/*.lock
+      !/home/runner/**/ivydata-*.properties
+    key: setup-java-${{ runner.os }}-x64-sbt-${{ hashFiles('**/*.sbt', '**/project/build.properties', '**/project/**.scala', '**/project/**.sbt', '.github/workflows/ci.yml') }}
+    restore-keys: setup-java-${{ runner.os }}-x64-sbt-
 ```
 
 `key` reproduces CI's exact key (same globs as the generated `cache-dependency-path`; `x64` is
@@ -172,11 +177,11 @@ ThisBuild / lucumaAffectedIgnorePaths ++= Seq("**vite.config.*", "**hasura/**")
 The workflow file itself doesn't change: the `Test` step calls `lucumaTestAffected` instead of
 `test`. No project names appear in it, so adding or renaming projects needs no regeneration.
 
-| Setting                     | Default                                                                                     | Description                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `lucumaAffectedTests`       | `true`                                                                                      | Set to `false` to always run the full suite.                                                                       |
-| `lucumaAffectedAlwaysPaths` | see above                                                                                   | Globs that trigger a full run.                                                                                     |
-| `lucumaAffectedIgnorePaths` | see above                                                                                   | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
+| Setting                     | Default                                                                                                                                                                      | Description                                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `lucumaAffectedTests`       | `true`                                                                                                                                                                       | Set to `false` to always run the full suite.                                                                       |
+| `lucumaAffectedAlwaysPaths` | see above                                                                                                                                                                    | Globs that trigger a full run.                                                                                     |
+| `lucumaAffectedIgnorePaths` | see above                                                                                                                                                                    | Globs that trigger nothing. Checked **before** the always list, so an entry here can't be overridden by one there. |
 | `lucumaAffectedBaseRef`     | `$LUCUMA_AFFECTED_BASE`, else `origin/$GITHUB_BASE_REF` on a PR, else `origin/<default branch>` on a push to any other branch, else the previous commit. Never set on a tag. | What to diff against. `None` runs everything.                                                                      |
 
 Globs use `java.nio` syntax: `*` stops at `/`, `**` doesn't. So `*.sbt` matches `build.sbt` but
@@ -308,10 +313,10 @@ The check to require is the job name plus the one matrix value GitHub appends:
 REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED (ubuntu-latest)
 ```
 
-| Setting                   | Default        | Description                                                    |
-| ------------------------- | -------------- | -------------------------------------------------------------- |
-| `lucumaRequiredChecks`    | `true`         | Set to `false` to not generate the job.                        |
-| `lucumaRequiredCheckJobs` | `Seq("build")` | Job ids to require. Each must exist in the generated workflow. |
+| Setting                       | Default                                                | Description                                                                                            |
+| ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `lucumaRequiredChecks`        | `true`                                                 | Set to `false` to not generate the job.                                                                |
+| `lucumaRequiredCheckJobs`     | `Seq("build")`                                         | Job ids to require. Each must exist in the generated workflow.                                         |
 | `lucumaRequiredChecksJobName` | `"REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED"` | Display name of the job. Keep it the same across repos so there is one string to configure everywhere. |
 
 The job runs `if: always()`, so a skipped dependency can't skip it and leave the check unreported.

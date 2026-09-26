@@ -150,23 +150,31 @@ object LucumaPlugin extends AutoPlugin {
       githubWorkflowArtifactUpload := true
     )
 
-    // Dependency downloads in CI fail spuriously (connection resets from Maven Central). Two
-    // defenses, both aimed at the same failure:
+    // Dependency downloads in CI fail spuriously (connection resets from Maven Central). Three
+    // defenses, all aimed at keeping downloads out of the test steps and surviving them where
+    // they must happen:
     //
     // 1. `setup-java` keys its sbt cache on the build files alone, so any other workflow in the
     //    repo that also uses `cache: sbt` (an npm publish, a nightly) races CI to save the key. A
     //    short job that only resolves one project wins that race and saves a partial cache; CI then
     //    gets a cache hit, skips `sbt +update`, and downloads the rest mid-test, exposed to the
     //    network. Hashing ci.yml along with the build files gives CI a key of its own.
-    // 2. Downloads that do happen retry more before giving up. Coursier's own defaults are 3
-    //    resolution attempts 1s apart and 5 download attempts.
+    // 2. The `sbt update` step, which runs on a cache miss and does nearly all the downloading, is
+    //    retried as a whole, and also fetches the Scala 3 compiler bridge, which sbt otherwise
+    //    resolves at the first `compile`. Coursier itself does not retry a connection reset: its
+    //    downloader turns the exception into an error value that the retry loop takes as success.
+    // 3. Coursier's own retries are raised where they do apply: lm-coursier re-runs a resolution on
+    //    "Connection timed out" and HTTP 5xx, and the downloader retries SSL exceptions.
     lazy val lucumaDependencyCacheSettings = Seq(
       // Rewrite the final job list rather than `githubWorkflowJobSetup`: builds that assemble
       // their own setup steps (a custom checkout, say) replace that setting outright and would
-      // silently lose the key change. This also covers `githubWorkflowAddedJobs`. Jobs that other
+      // silently lose the change. This also covers `githubWorkflowAddedJobs`. Jobs that other
       // lucuma plugins append later (they `require` this one, so their settings run after this)
-      // must call `withSbtCacheKey` themselves; see `LucumaAffectedPlugin.affectedJob`.
-      githubWorkflowGeneratedCI ~= (_.map(withSbtCacheKey)),
+      // must call `withDependencyCacheSteps` themselves; see `LucumaAffectedPlugin.affectedJob`.
+      githubWorkflowGeneratedCI := {
+        val sbt = ciSbtCommand.value
+        githubWorkflowGeneratedCI.value.map(withDependencyCacheSteps(sbt))
+      },
       // Append rather than replace: a build may already carry SBT_OPTS (heap, proxies).
       githubWorkflowEnv ~= { env =>
         val retry = s"-D$CoursierDownloadRetryProperty=$CoursierDownloadRetries"
@@ -240,13 +248,51 @@ object LucumaPlugin extends AutoPlugin {
       case _                                         => false
     }
 
-  /** Gives every sbt-caching `setup-java` step in the job the CI-specific cache key. */
-  private[sbtplugin] def withSbtCacheKey(job: WorkflowJob): WorkflowJob =
+  /** The sbt command the generated workflow uses, as sbt-github-actions renders it. */
+  private[sbtplugin] val ciSbtCommand: Def.Initialize[String] = Def.setting {
+    if (githubWorkflowUseSbtThinClient.value) githubWorkflowSbtCommand.value + " --client"
+    else githubWorkflowSbtCommand.value
+  }
+
+  /**
+   * Gives every sbt-caching `setup-java` step in the job the CI-specific cache key, and turns the
+   * generated `sbt update` step into a retried one that also fetches the compiler bridge.
+   */
+  private[sbtplugin] def withDependencyCacheSteps(sbt: String)(job: WorkflowJob): WorkflowJob =
     job.withSteps(job.steps.map {
       case step: WorkflowStep.Use if isSbtCachingSetupJava(step) =>
         step.updatedParams("cache-dependency-path", SbtCacheDependencyPath)
+      case step: WorkflowStep.Sbt if isSbtUpdate(step)           =>
+        retriedUpdate(sbt, step)
       case step                                                  => step
     })
+
+  private def isSbtUpdate(step: WorkflowStep.Sbt): Boolean =
+    step.commands == List("+update") && step.name.contains("sbt update")
+
+  private val UpdateAttempts: Int     = 3
+  private val UpdatePauseSeconds: Int = 30
+
+  // `+scalaCompilerBridgeBinaryJar` resolves the Scala 3 bridge (a no-op on Scala 2), so the
+  // first compile later finds it in the cache. The script keeps the step's own shell semantics:
+  // a success exits early, the last failure exits non-zero.
+  private def retriedUpdate(sbt: String, step: WorkflowStep.Sbt): WorkflowStep.Run =
+    WorkflowStep.Run(
+      commands = List(
+        s"for attempt in ${(1 to UpdateAttempts).mkString(" ")}; do",
+        s"  $sbt +update +scalaCompilerBridgeBinaryJar && exit 0",
+        s"""  [ "$$attempt" = $UpdateAttempts ] || sleep $UpdatePauseSeconds""",
+        "done",
+        "exit 1"
+      ),
+      id = step.id,
+      name = step.name,
+      cond = step.cond,
+      env = step.env,
+      params = step.params,
+      timeoutMinutes = step.timeoutMinutes,
+      continueOnError = step.continueOnError
+    )
 
   private val CoursierResolutionRetries: Int               = 10
   private val CoursierResolutionRetryDelay: FiniteDuration = 5.seconds

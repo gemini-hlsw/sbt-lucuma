@@ -60,6 +60,21 @@ ThisBuild / checkCacheKey := {
     }
   }
 
+  // the update step is retried as a whole and also fetches the compiler bridge
+  List("build", "deploy", "affected").foreach { id =>
+    val job    = all.find(_.id == id).get
+    val update = job.steps.find(_.name.contains("sbt update")).getOrElse(sys.error(s"`$id`: no update step"))
+    update match {
+      case r: WorkflowStep.Run =>
+        val script = r.commands.mkString("\n")
+        if (!script.contains("for attempt in 1 2 3")) sys.error(s"`$id`: update is not retried:\n$script")
+        if (!script.contains("sbt +update +scalaCompilerBridgeBinaryJar"))
+          sys.error(s"`$id`: update does not fetch the compiler bridge:\n$script")
+        if (!r.cond.exists(_.contains("cache-hit == 'false'"))) sys.error(s"`$id`: lost the cache-miss condition: ${r.cond}")
+      case other               => sys.error(s"`$id`: update step is still ${other.getClass.getSimpleName}")
+    }
+  }
+
   // no sbt-caching setup-java step anywhere is left on the default key
   all.foreach { job =>
     job.steps.filter(isSbtCachingSetupJava).collect { case s: WorkflowStep.Use => s }.foreach { s =>
