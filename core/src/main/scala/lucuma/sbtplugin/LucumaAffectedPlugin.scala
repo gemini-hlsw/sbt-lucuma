@@ -202,8 +202,9 @@ object LucumaAffectedPlugin extends AutoPlugin {
     )
 
     // This job is appended after LucumaPlugin's `githubWorkflowGeneratedCI` rewrite has run, so
-    // it must apply the sbt cache key itself. Without it, setup-java keys the cache on the build
-    // files alone and this short job saves a partial cache that the build job then restores.
+    // it must apply the sbt cache key and the retried update itself. Without the key, setup-java
+    // keys the cache on the build files alone and this short job saves a partial cache that the
+    // build job then restores.
     val job = WorkflowJob(
       id = lucumaAffectedJobId,
       name = "Affected Projects",
@@ -218,7 +219,7 @@ object LucumaAffectedPlugin extends AutoPlugin {
       ),
       timeoutMinutes = Some(20)
     )
-    LucumaPlugin.withSbtCacheKey(job)
+    LucumaPlugin.withDependencyCacheSteps(LucumaPlugin.ciSbtCommand.value)(job)
   }
 
   private def narrowTestStep(job: WorkflowJob): WorkflowJob =
