@@ -70,7 +70,7 @@ lazy val jsdom = project
     name                := "lucuma-jsdom",
     libraryDependencies ++= Seq(
       "org.scala-js"  %% "scalajs-env-jsdom-nodejs" % "1.1.1",
-      "org.scala-sbt" %% "io"                       % "1.13.3"
+      "org.scala-sbt" %% "io"                       % "1.13.4"
     ),
     tlVersionIntroduced := Map("2.12" -> "0.10.11")
   )
