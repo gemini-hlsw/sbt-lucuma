@@ -48,13 +48,11 @@ object LucumaPlugin extends AutoPlugin {
     lazy val lucumaScalacProjectSettings = Seq(
       // workaround https://github.com/fthomas/refined/pull/1317
       scalacOptions += "-Wconf:msg=Given search preference for .*WitnessAs:s",
-      // Move this the sbt-typelevel plugin?
-      // sbt-typelevel has better facilities for checking verions, but they are private
       scalacOptions ++= {
-        if (scalaVersion.value.startsWith("3"))
-          Seq("-Wunused:nowarn")
-        else
-          Seq.empty
+        if (tlIsScala3.value)
+          Seq("-Wunused:nowarn") ++
+            (if (githubIsWorkflowBuild.value) Seq("-opt", "-opt-inline:lucuma.**") else Seq.empty)
+        else Seq.empty
       }
     )
 
