@@ -49,9 +49,7 @@ object LucumaPlugin extends AutoPlugin {
       // workaround https://github.com/fthomas/refined/pull/1317
       scalacOptions += "-Wconf:msg=Given search preference for .*WitnessAs:s",
       scalacOptions ++= {
-        if (tlIsScala3.value)
-          Seq("-Wunused:nowarn") ++
-            (if (githubIsWorkflowBuild.value) Seq("-opt", "-opt-inline:lucuma.**") else Seq.empty)
+        if (tlIsScala3.value) Seq("-Wunused:nowarn")
         else Seq.empty
       }
     )
