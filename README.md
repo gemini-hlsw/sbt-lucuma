@@ -382,6 +382,9 @@ Opinionated Docker packaging (via sbt-native-packager) for lucuma server applica
 
 - `eclipse-temurin:25-jre` base image, `noirlab` Docker username, non-root `software` user.
 - Heroku-compatible image manifest (`--provenance false --output type=docker`, `linux/amd64`).
+- The image's JVM distrusts the CAs compromised in
+  [CVE-2026-91403](https://www.scala-lang.org/blog/jdk-certificate-vulnerability.html) by adding
+  them to `blocked.certs`, so deployments are protected even on unpatched base images.
 - OOM safety JVM options, locale settings, no Windows launchers, no javadocs/sources.
 - cgroups-aware heap sizing (via a bundled `docker-set-memory.sh`) and optional Heroku Java
   metrics agent (downloaded at build time).
