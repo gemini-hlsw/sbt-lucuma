@@ -145,7 +145,10 @@ object LucumaDockerPlugin extends AutoPlugin {
       // Make sure the application exits on OOM
       "-J-XX:+ExitOnOutOfMemoryError",
       "-J-XX:+CrashOnOutOfMemoryError",
-      "-J-XX:HeapDumpPath=/tmp"
+      "-J-XX:HeapDumpPath=/tmp",
+      // CVE-2026-114938: remove once the base image ships a patched JDK
+      "-J-XX:+UnlockDiagnosticVMOptions",
+      "-J-XX:-UseBASE64Intrinsics"
     ),
     Universal / javaOptions ++= {
       if (lucumaDockerUseHerokuAgent.value)
