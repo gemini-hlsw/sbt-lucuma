@@ -142,7 +142,7 @@ object LucumaPlugin extends AutoPlugin {
         },
       tlCiScalafixCheck            := true,
       tlCiDocCheck                 := false, // we are generating empty docs anyway
-      tlCiDependencyGraphJob       := false,
+      tlCiDependencyGraphJob       := true,
       githubWorkflowArtifactUpload := true
     )
 
